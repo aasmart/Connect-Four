@@ -1,26 +1,22 @@
 package dev.aasmart.models
 
+import dev.aasmart.game.ConnectFourGame
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
+import java.util.Collections
 
 @Serializable
-enum class PieceType {
-    RED,
-    YELLOW,
-    EMPTY
+enum class PieceType(val int: Int) {
+    RED(0),
+    YELLOW(1),
+    EMPTY(2)
 }
 
 @Serializable
-enum class GameState {
-    WON,
-    DRAWN,
-    ACTIVE
-}
-
-@Serializable
-class GameBoard {
-    val matrix: Array<PieceType> = arrayOf();
-
+enum class GameStatus(val intValue: Int) {
+    WON(0),
+    DRAWN(1),
+    ACTIVE(2)
 }
 
 @Serializable
@@ -35,6 +31,8 @@ data class Game(
         return playTwoId.isNotEmpty() && playerOneId.isNotEmpty()
     }
 }
+
+val gamesCacheMap: MutableMap<Int, ConnectFourGame> = Collections.synchronizedMap(HashMap())
 
 object Games : Table() {
     val id = integer("id").autoIncrement()

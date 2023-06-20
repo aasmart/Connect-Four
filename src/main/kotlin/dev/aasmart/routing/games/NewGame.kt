@@ -1,8 +1,10 @@
 package dev.aasmart.routing.games
 
 import dev.aasmart.dao.games.gamesFacade
+import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.models.JoinCodes
 import dev.aasmart.models.PlayerSession
+import dev.aasmart.models.gamesCacheMap
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -22,6 +24,8 @@ fun Route.newGame() {
             call.respond(HttpStatusCode.Conflict, "Couldn't create a new game")
             return@post
         }
+
+        gamesCacheMap.putIfAbsent(game.id, ConnectFourGame())
 
         JoinCodes.codeMap[game.id] = game.id
 

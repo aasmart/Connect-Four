@@ -1,9 +1,12 @@
 package dev.aasmart.plugins
 
 import dev.aasmart.dao.games.gamesFacade
+import dev.aasmart.game.GameState
+import dev.aasmart.game.GameTile
 import dev.aasmart.game.Packet
 import dev.aasmart.models.PlayerSession
 import dev.aasmart.models.PlayerConnection
+import dev.aasmart.models.gamesCacheMap
 import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -57,19 +60,36 @@ fun Application.configureSockets() {
 
                 val connection = PlayerConnection(this, session.userId)
                 connections.putIfAbsent(gameId, Collections.synchronizedSet(LinkedHashSet()))
-                connections[gameId]?.let {
-                    it += connection
-                }
+                connections[gameId]?.let { it += connection }
 
                 try {
                     connection.session.send("Connected to game $gameId")
+
+                    val currentGame = gamesCacheMap[gameId] ?: throw Exception("Game doesnt exist")
+                    connection.session.send(Json.encodeToString(currentGame.collectAsState()))
+
                     println("New connection established")
 
                     for (frame in incoming) {
                         frame as? Frame.Text ?: continue
                         val text: String = frame.readText()
                         val packet = Json.decodeFromString<Packet>(text)
-                        connections[gameId]?.forEach { it.session.send(Json.encodeToString(packet)) }
+
+                        val playerId = connection.playerId
+
+                        if(currentGame.getIsPlayerOneTurn() && playerId == game.playerOneId ||
+                            !currentGame.getIsPlayerOneTurn() && playerId == game.playTwoId)
+                            currentGame.playRound(packet.placeIndex)
+
+                        val state = currentGame.collectAsState()
+                        connections[gameId]?.forEach {
+                            if(state.isPlayerOneTurn && it.playerId == game.playerOneId)
+                                it.session.send(Json.encodeToString(state.copy(isTurn = true)))
+                            else if(!state.isPlayerOneTurn && it.playerId == game.playTwoId)
+                                it.session.send(Json.encodeToString(state.copy(isTurn = false)))
+                            else
+                                it.session.send(Json.encodeToString(state))
+                        }
                     }
                 } catch (e: Exception) {
                     println(e.localizedMessage)

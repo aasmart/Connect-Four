@@ -1,4 +1,4 @@
-package dev.aasmart.dao.games
+package dev.aasmart.dao
 
 import org.jetbrains.exposed.sql.ResultRow
 

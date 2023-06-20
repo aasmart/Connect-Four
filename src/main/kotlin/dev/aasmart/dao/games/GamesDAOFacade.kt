@@ -1,5 +1,6 @@
 package dev.aasmart.dao.games
 
+import dev.aasmart.dao.DAOFacade
 import dev.aasmart.models.Game
 
 interface GamesDAOFacade : DAOFacade<Game> {

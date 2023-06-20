@@ -18,6 +18,7 @@ window.addEventListener("load", () => {
     }
 
     client.onmessage = (e) => {
+        console.log(e.data)
         try {
             handleGameState(GAME_TILES, JSON.parse(e.data))
         } catch (e) {
@@ -26,13 +27,39 @@ window.addEventListener("load", () => {
     }
 });
 
-function handleGameState(tiles: Element[], state: Packet) {
-    tiles[state.placeIndex].classList.toggle(PieceType[state.placePieceType].toLowerCase())
+function handleGameState(tiles: Element[], state: GameState) {
+    tiles.forEach((tile, index) => {
+        const tileState = state.gameTiles[index];
+        const pieceType = PieceType[tileState.pieceType]
+
+        if(tileState.pieceType != PieceType.EMPTY) {
+            tile.classList.add("fall")
+            tile.classList.add(pieceType.toLowerCase());
+        }
+
+        tile.toggleAttribute("disabled", !tileState.canPlace)
+        tile.classList.toggle("canPlace", tileState.canPlace)
+
+        let title
+        if(state.gameStatus == GameStatus.ACTIVE) {
+            if(state.isPlayerOneTurn)
+                title = "It's Player 1's turn!";
+            else if(!state.isPlayerOneTurn)
+                title = "It's Player 2's turn!";
+        } else if(state.gameStatus == GameStatus.WON) {
+            if(state.isPlayerOneTurn)
+                title = "Player 1 wins!";
+            else
+                title = "Player 2 wins!";
+        } else
+            title = "The game has ended in a draw!";
+
+        document.getElementById("state-title").innerText = title;
+    })
 }
 
 function placePiece(index: number) {
     const packet: Packet = {
-        placePieceType: PieceType.RED,
         placeIndex: index
     }
 
@@ -44,7 +71,25 @@ enum PieceType {
     YELLOW,
     EMPTY
 }
+
+enum GameStatus {
+    WON,
+    DRAWN,
+    ACTIVE
+}
+
 interface Packet {
-    placePieceType: PieceType,
     placeIndex: number
+}
+
+interface GameTile {
+    pieceType: number,
+    canPlace: boolean
+}
+
+interface GameState {
+    gameTiles: GameTile[]
+    isTurn: boolean
+    isPlayerOneTurn: Boolean
+    gameStatus: GameStatus
 }

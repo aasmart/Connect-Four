@@ -2,7 +2,7 @@
 <#import "_layout.ftl" as layout />
 
 <@layout.main>
-    <h2>
+    <h2 id="state-title">
         [TITLE]
     </h2>
     <div class="gameBoard">
