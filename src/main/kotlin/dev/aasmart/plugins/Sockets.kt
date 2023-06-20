@@ -16,9 +16,11 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.time.Duration
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashSet
 
-val connections: MutableSet<PlayerConnection> = Collections.synchronizedSet(LinkedHashSet())
+val connections: MutableMap<Int, MutableSet<PlayerConnection>> =
+    Collections.synchronizedMap(HashMap())
 
 fun Application.configureSockets() {
     install(WebSockets) {
@@ -54,7 +56,10 @@ fun Application.configureSockets() {
                 // Connection stuff
 
                 val connection = PlayerConnection(this, session.userId)
-                connections += connection;
+                connections.putIfAbsent(gameId, Collections.synchronizedSet(LinkedHashSet()))
+                connections[gameId]?.let {
+                    it += connection
+                }
 
                 try {
                     connection.session.send("Connected to game $gameId")
@@ -64,13 +69,15 @@ fun Application.configureSockets() {
                         frame as? Frame.Text ?: continue
                         val text: String = frame.readText()
                         val packet = Json.decodeFromString<Packet>(text)
-                        connections.forEach { it.session.send(Json.encodeToString(packet)) }
+                        connections[gameId]?.forEach { it.session.send(Json.encodeToString(packet)) }
                     }
                 } catch (e: Exception) {
                     println(e.localizedMessage)
                 } finally {
                     println("Session ${connection.session} disconnected")
-                    connections -= connection;
+                    connections[gameId]?.let {
+                        it -= connection;
+                    }
                 }
             }
         }
