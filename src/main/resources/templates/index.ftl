@@ -3,7 +3,7 @@
 
 <@layout.main>
     <h2 id="state-title">
-        Waiting for players to connect...
+        Loading game...
     </h2>
     <div class="gameBoard">
         <#list state.gameTiles as tile>

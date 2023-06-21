@@ -44,6 +44,47 @@ window.addEventListener("load", () => {
     }
 });
 
+function getTitleString(state: GameState) {
+    let title
+    switch(state.gameStatus) {
+        case GameStatus.ACTIVE:
+            if(state.isPlayerOneTurn)
+                if(player.playerRole === "PLAYER_ONE")
+                    title = "It's your turn!";
+                else
+                    title = "It's Player 1's turn!"
+            else if(!state.isPlayerOneTurn)
+                if(player.playerRole === "PLAYER_TWO")
+                    title = "It's your turn!";
+                else
+                    title = "It's Player 2's turn!"
+            break;
+        case GameStatus.PLAYER_ONE_WON:
+            if(player.playerRole === "PLAYER_ONE")
+                title = "You won!"
+            else
+                title = "Player One wins!"
+            break;
+        case GameStatus.PLAYER_TWO_WON:
+            if(player.playerRole === "PLAYER_TWO")
+                title = "You won!"
+            else
+                title = "Player Two wins!"
+            break;
+        case GameStatus.DRAWN:
+            title = "The game has ended in a draw"
+            break;
+        case GameStatus.WAITING_FOR_PLAYERS:
+            title = "Waiting for players to join"
+            break;
+        default:
+            title = "Unknown state"
+            break;
+    }
+
+    return title
+}
+
 function handleGameState(tiles: Element[], state: GameState) {
     tiles.forEach((tile, index) => {
         const tileState = state.gameTiles[index];
@@ -54,44 +95,14 @@ function handleGameState(tiles: Element[], state: GameState) {
             tile.classList.add(pieceType.toLowerCase());
         }
 
-        tile.toggleAttribute("disabled", !tileState.canPlace)
-        tile.classList.toggle("canPlace", tileState.canPlace)
+        const canPlay =
+            state.isPlayerOneTurn && player.playerRole === "PLAYER_ONE" ||
+            !state.isPlayerOneTurn && player.playerRole === "PLAYER_TWO";
 
-        let title
-        switch(state.gameStatus) {
-            case GameStatus.ACTIVE:
-                if(state.isPlayerOneTurn)
-                    if(player.playerRole === "PLAYER_ONE")
-                        title = "It's your turn!";
-                    else
-                        title = "It's Player 1's turn!"
-                else if(!state.isPlayerOneTurn)
-                    if(player.playerRole === "PLAYER_TWO")
-                        title = "It's your turn!";
-                    else
-                        title = "It's Player 2's turn!"
-                break;
-            case GameStatus.PLAYER_ONE_WON:
-                if(player.playerRole === "PLAYER_ONE")
-                    title = "You won!"
-                else
-                    title = "Player One wins!"
-                break;
-            case GameStatus.PLAYER_TWO_WON:
-                if(player.playerRole === "PLAYER_TWO")
-                    title = "You won!"
-                else
-                    title = "Player Two wins!"
-                break;
-            case GameStatus.DRAWN:
-                title = "The game has ended in a draw"
-                break;
-            default:
-                title = "Unknown state"
-                break;
-        }
+        tile.toggleAttribute("disabled", (!tileState.canPlace || !canPlay));
+        tile.classList.toggle("canPlace", tileState.canPlace && canPlay);
 
-        document.getElementById("state-title").innerText = title;
+        document.getElementById("state-title").innerText = getTitleString(state);
     })
 }
 

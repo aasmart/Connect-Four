@@ -9,7 +9,7 @@ class ConnectFourGame(
     private val boardWidth: Int = 7,
     private val boardHeight: Int = 6,
     private var isPlayerOneTurn: Boolean = true,
-    private var gameStatus: GameStatus = GameStatus.ACTIVE
+    private var gameStatus: GameStatus = GameStatus.WAITING_FOR_PLAYERS
 ) {
     private val gameTiles = MutableList(boardWidth * boardHeight) { PieceType.EMPTY }.toTypedArray()
 
@@ -21,7 +21,8 @@ class ConnectFourGame(
         return index in 0 until(gameTiles.size) &&
                 gameTiles[index] == PieceType.EMPTY &&
                 gameStatus == GameStatus.ACTIVE &&
-                (index + boardWidth >= gameTiles.size || gameTiles[index + boardWidth] != PieceType.EMPTY)
+                (index + boardWidth >= gameTiles.size || gameTiles[index + boardWidth] != PieceType.EMPTY) &&
+                gameStatus != GameStatus.WAITING_FOR_PLAYERS
     }
 
     fun getCurrentPlayerPieceType(): PieceType {
