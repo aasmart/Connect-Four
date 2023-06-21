@@ -2,6 +2,8 @@ package dev.aasmart.game
 
 import dev.aasmart.models.GameStatus
 import dev.aasmart.models.PieceType
+import dev.aasmart.utils.*
+import kotlin.math.floor
 
 class ConnectFourGame(
     private val boardWidth: Int = 7,
@@ -34,7 +36,24 @@ class ConnectFourGame(
         return true
     }
 
-    private fun checkGameStatus(): GameStatus {
+    private fun checkGameStatus(placeIndex: Int, placedPieceType: PieceType): GameStatus {
+        val matrix = gameTiles.asMatrix(rows = boardHeight, columns = boardWidth)
+
+        val placedTileRow = floor(placeIndex.toDouble() / boardWidth).toInt()
+        val placedTileColumn = placeIndex % boardWidth
+
+        val pieceMask = Array(4) { placedPieceType }
+
+        if(matrix?.getColumn(placedTileColumn)?.containsSubarray(pieceMask) == true ||
+            matrix?.get(placedTileRow)?.containsSubarray(pieceMask)== true ||
+            matrix?.getDiagonal(ArrayDiagonalType.MAJOR, placedTileRow, placedTileColumn)?.containsSubarray(pieceMask) == true ||
+            matrix?.getDiagonal(ArrayDiagonalType.MINOR, placedTileRow, placedTileColumn)?.containsSubarray(pieceMask) == true
+        )
+            return GameStatus.WON
+
+        if(!gameTiles.contains(PieceType.EMPTY))
+            return GameStatus.DRAWN
+
         return GameStatus.ACTIVE
     }
 
@@ -42,11 +61,11 @@ class ConnectFourGame(
         if(!placePiece(placeIndex))
             return false
 
-        gameStatus = checkGameStatus()
+        gameStatus = checkGameStatus(placeIndex, getCurrentPlayerPieceType())
         if(gameStatus == GameStatus.ACTIVE)
             isPlayerOneTurn = !isPlayerOneTurn
 
-        return true;
+        return true
     }
 
     fun collectAsState(): GameState = GameState(

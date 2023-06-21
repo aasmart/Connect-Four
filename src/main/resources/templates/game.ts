@@ -1,4 +1,4 @@
-const SOCKET_ROUTE_URI = "ws://127.0.0.1:8080/api/game"
+const SOCKET_ROUTE_URI = "ws://192.168.5.77:8080/api/game"
 
 let client: WebSocket;
 
