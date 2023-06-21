@@ -30,6 +30,10 @@ data class Game(
     fun isFull(): Boolean {
         return playTwoId.isNotEmpty() && playerOneId.isNotEmpty()
     }
+
+    fun hasPlayer(playerId: String): Boolean {
+        return playerOneId == playerId || playTwoId == playerId
+    }
 }
 
 val gamesCacheMap: MutableMap<Int, ConnectFourGame> = Collections.synchronizedMap(HashMap())

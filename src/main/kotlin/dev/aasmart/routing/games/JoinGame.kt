@@ -31,11 +31,12 @@ fun Route.joinGame() {
             return@get
         }
 
-        gamesFacade.editGame(
-            gameId = game.id,
-            playerOneId = game.playerOneId.ifEmpty { playerId },
-            playerTwoId = game.playTwoId.ifEmpty { playerId }
-        )
+        if(!game.hasPlayer(playerId))
+            gamesFacade.editGame(
+                gameId = game.id,
+                playerOneId = game.playerOneId.ifEmpty { playerId },
+                playerTwoId = game.playTwoId.ifEmpty { playerId }
+            )
 
         call.sessions.set(PlayerSession(
             userId = playerId,
