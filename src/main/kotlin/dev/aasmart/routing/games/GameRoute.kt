@@ -6,5 +6,6 @@ fun Route.game() {
     route("/game") {
         newGame()
         joinGame()
+        getPlayerData()
     }
 }

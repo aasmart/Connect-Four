@@ -2,14 +2,17 @@ package dev.aasmart.plugins
 
 import dev.aasmart.game.Tile
 import dev.aasmart.models.PieceType
+import dev.aasmart.models.gamesCacheMap
 import dev.aasmart.routing.games.game
 import dev.aasmart.routing.login.login
+import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.freemarker.*
 import io.ktor.server.http.content.*
+import io.ktor.server.request.*
 
 fun Application.configureRouting() {
     routing {
@@ -24,7 +27,14 @@ fun Application.configureRouting() {
 
         authenticate("auth-session") {
             get("/game/{id}") {
-                call.respond(FreeMarkerContent("index.ftl", mapOf("tiles" to MutableList(6 * 7) { Tile(PieceType.EMPTY, true, false) })))
+                val id = call.parameters["id"]?.toInt()
+
+                if(id == null) {
+                    call.respond(HttpStatusCode.NotFound, "Game does not exist")
+                    return@get
+                }
+
+                call.respond(FreeMarkerContent("index.ftl", mapOf("state" to gamesCacheMap[id]?.collectAsState())))
             }
         }
     }

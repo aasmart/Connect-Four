@@ -1,6 +1,9 @@
-const SOCKET_ROUTE_URI = "ws://192.168.5.77:8080/api/game"
+const SOCKET_ROUTE_URI = "ws://127.0.0.1:8080/api/game"
+const API_ROUTE_URI = "http://127.0.0.1:8080/api/game"
 
 let client: WebSocket;
+let player: PlayerData;
+let lastState: GameState
 
 window.addEventListener("load", () => {
     // @ts-ignore
@@ -15,12 +18,26 @@ window.addEventListener("load", () => {
 
     client.onopen = () => {
         console.log("Connected")
+
+        fetch(`${API_ROUTE_URI}/${gameId}/player-data`).then(res => {
+            if(!res.ok)
+                throw new Error();
+
+            return res.json();
+        }).then(data => {
+              player = JSON.parse(JSON.stringify(data));
+              if(lastState)
+                  handleGameState(GAME_TILES, lastState)
+        }).catch(err => {
+            console.log(err);
+        });
     }
 
     client.onmessage = (e) => {
-        console.log(e.data)
         try {
-            handleGameState(GAME_TILES, JSON.parse(e.data))
+            lastState = JSON.parse(e.data)
+            if(player)
+                handleGameState(GAME_TILES, lastState)
         } catch (e) {
             console.log(e)
         }
@@ -41,18 +58,38 @@ function handleGameState(tiles: Element[], state: GameState) {
         tile.classList.toggle("canPlace", tileState.canPlace)
 
         let title
-        if(state.gameStatus == GameStatus.ACTIVE) {
-            if(state.isPlayerOneTurn)
-                title = "It's Player 1's turn!";
-            else if(!state.isPlayerOneTurn)
-                title = "It's Player 2's turn!";
-        } else if(state.gameStatus == GameStatus.WON) {
-            if(state.isPlayerOneTurn)
-                title = "Player 1 wins!";
-            else
-                title = "Player 2 wins!";
-        } else
-            title = "The game has ended in a draw!";
+        switch(state.gameStatus) {
+            case GameStatus.ACTIVE:
+                if(state.isPlayerOneTurn)
+                    if(player.playerRole === "PLAYER_ONE")
+                        title = "It's your turn!";
+                    else
+                        title = "It's Player 1's turn!"
+                else if(!state.isPlayerOneTurn)
+                    if(player.playerRole === "PLAYER_TWO")
+                        title = "It's your turn!";
+                    else
+                        title = "It's Player 2's turn!"
+                break;
+            case GameStatus.PLAYER_ONE_WON:
+                if(player.playerRole === "PLAYER_ONE")
+                    title = "You won!"
+                else
+                    title = "Player One wins!"
+                break;
+            case GameStatus.PLAYER_TWO_WON:
+                if(player.playerRole === "PLAYER_TWO")
+                    title = "You won!"
+                else
+                    title = "Player Two wins!"
+                break;
+            case GameStatus.DRAWN:
+                title = "The game has ended in a draw"
+                break;
+            default:
+                title = "Unknown state"
+                break;
+        }
 
         document.getElementById("state-title").innerText = title;
     })
@@ -73,9 +110,12 @@ enum PieceType {
 }
 
 enum GameStatus {
-    WON,
+    ACTIVE,
     DRAWN,
-    ACTIVE
+    WON,
+    PLAYER_ONE_WON,
+    PLAYER_TWO_WON,
+    WAITING_FOR_PLAYERS
 }
 
 interface Packet {
@@ -89,7 +129,10 @@ interface GameTile {
 
 interface GameState {
     gameTiles: GameTile[]
-    isTurn: boolean
     isPlayerOneTurn: Boolean
     gameStatus: GameStatus
+}
+
+interface PlayerData {
+    playerRole: string
 }

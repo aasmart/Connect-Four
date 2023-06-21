@@ -1,6 +1,7 @@
 package dev.aasmart.plugins
 
 import dev.aasmart.dao.games.gamesFacade
+import dev.aasmart.models.GameRole
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*
 import io.ktor.server.sessions.*

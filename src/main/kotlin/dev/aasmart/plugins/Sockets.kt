@@ -1,8 +1,6 @@
 package dev.aasmart.plugins
 
 import dev.aasmart.dao.games.gamesFacade
-import dev.aasmart.game.GameState
-import dev.aasmart.game.GameTile
 import dev.aasmart.game.Packet
 import dev.aasmart.models.PlayerSession
 import dev.aasmart.models.PlayerConnection
@@ -10,7 +8,6 @@ import dev.aasmart.models.gamesCacheMap
 import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
@@ -63,12 +60,10 @@ fun Application.configureSockets() {
                 connections[gameId]?.let { it += connection }
 
                 try {
-                    connection.session.send("Connected to game $gameId")
+                    connection.session.send("Connected to game ${game.id}")
 
                     val currentGame = gamesCacheMap[gameId] ?: throw Exception("Game doesnt exist")
                     connection.session.send(Json.encodeToString(currentGame.collectAsState()))
-
-                    println("New connection established")
 
                     for (frame in incoming) {
                         frame as? Frame.Text ?: continue
@@ -83,12 +78,7 @@ fun Application.configureSockets() {
 
                         val state = currentGame.collectAsState()
                         connections[gameId]?.forEach {
-                            if(state.isPlayerOneTurn && it.playerId == game.playerOneId)
-                                it.session.send(Json.encodeToString(state.copy(isTurn = true)))
-                            else if(!state.isPlayerOneTurn && it.playerId == game.playTwoId)
-                                it.session.send(Json.encodeToString(state.copy(isTurn = false)))
-                            else
-                                it.session.send(Json.encodeToString(state))
+                            it.session.send(Json.encodeToString(state))
                         }
                     }
                 } catch (e: Exception) {

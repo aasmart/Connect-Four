@@ -14,10 +14,21 @@ enum class PieceType(val int: Int) {
 
 @Serializable
 enum class GameStatus(val intValue: Int) {
-    WON(0),
+    ACTIVE(0),
     DRAWN(1),
-    ACTIVE(2)
+    WON(2),
+    PLAYER_ONE_WON(3),
+    PLAYER_TWO_WON(4),
+    WAITING_FOR_PLAYERS(5)
 }
+
+@Serializable
+enum class GameRole {
+    PLAYER_ONE,
+    PLAYER_TWO,
+    SPECTATOR
+}
+
 
 @Serializable
 data class Game(
@@ -33,6 +44,14 @@ data class Game(
 
     fun hasPlayer(playerId: String): Boolean {
         return playerOneId == playerId || playTwoId == playerId
+    }
+
+    fun getPlayerRole(playerId: String): GameRole {
+        return when (playerId) {
+            playerOneId -> GameRole.PLAYER_ONE
+            playTwoId -> GameRole.PLAYER_TWO
+            else -> GameRole.SPECTATOR
+        }
     }
 }
 

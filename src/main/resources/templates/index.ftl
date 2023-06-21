@@ -1,24 +1,18 @@
-<#-- @ftlvariable name="tiles" type="kotlin.collections.List<dev.aasmart.game.Tile>" -->
+<#-- @ftlvariable name="state" type="dev.aasmart.game.GameState" -->
 <#import "_layout.ftl" as layout />
 
 <@layout.main>
     <h2 id="state-title">
-        [TITLE]
+        Waiting for players to connect...
     </h2>
     <div class="gameBoard">
-        <#list tiles as tile>
+        <#list state.gameTiles as tile>
             <#if tile.canPlace == true>
                 <button class="gameTile canPlace" onclick="placePiece(${tile?counter - 1})"></button>
             </#if>
             <#if tile.canPlace == false>
-                <#if tile.fall == true>
-                    <button class="gameTile fall ${tile.pieceType}"></button>
-                </#if>
-                <#if tile.canPlace == false>
-                    <button class="gameTile ${tile.pieceType}"></button>
-                </#if>
+                <button class="gameTile ${tile.pieceType}" onclick="placePiece(${tile?counter - 1})"></button>
             </#if>
-
         </#list>
     </div>
 

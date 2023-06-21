@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GameState(
     val gameTiles: Array<GameTile>,
-    val isTurn: Boolean,
     val isPlayerOneTurn: Boolean,
     val gameStatus: Int
 ) {

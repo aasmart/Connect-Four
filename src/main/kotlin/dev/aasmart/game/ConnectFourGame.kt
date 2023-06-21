@@ -49,7 +49,7 @@ class ConnectFourGame(
             matrix?.getDiagonal(ArrayDiagonalType.MAJOR, placedTileRow, placedTileColumn)?.containsSubarray(pieceMask) == true ||
             matrix?.getDiagonal(ArrayDiagonalType.MINOR, placedTileRow, placedTileColumn)?.containsSubarray(pieceMask) == true
         )
-            return GameStatus.WON
+            return if (placedPieceType == PieceType.RED) GameStatus.PLAYER_ONE_WON else GameStatus.PLAYER_TWO_WON
 
         if(!gameTiles.contains(PieceType.EMPTY))
             return GameStatus.DRAWN
@@ -72,6 +72,5 @@ class ConnectFourGame(
             gameTiles = gameTiles.mapIndexed { index, piece -> GameTile(piece.int, canPlaceOnTile(index)) }.toTypedArray(),
             gameStatus = gameStatus.intValue,
             isPlayerOneTurn = isPlayerOneTurn,
-            isTurn = false
     )
 }
