@@ -6,6 +6,7 @@
     --background-color: #FEFEFE;
     --on-background-color: #EFEFEF;
     --input-color: #DDDDDD;
+    --accent-color: #e7bf26;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -13,6 +14,14 @@
         --background-color: #333333;
         --on-background-color: #222222;
         --input-color: #777777;
+    }
+
+    .gameTile:not(.canPlace, .red, .yellow)::after {
+        filter: brightness(30%);
+    }
+
+    .gameTile.canPlace:hover::after {
+        filter: brightness(130%);
     }
 }
 
@@ -79,7 +88,7 @@ main {
     align-items: center;
 }
 
-.input-form form h3{
+.input-form form h3 {
     padding: 4px;
 
     font-size: 1.5rem;
@@ -119,7 +128,7 @@ label {
     margin: auto;
     z-index: -1;
 
-    background-color: #b80006;
+    background-color: var(--accent-color);
     scale: 0;
 
     transition: scale 300ms;
@@ -154,11 +163,11 @@ input {
     display: grid;
     grid: repeat(var(--rows), var(--size)) / repeat(var(--columns), var(--size));
 
-    border: 2px solid #555555;
+    border: none;
     box-shadow: 0 2px 10px black;
     border-radius: 16px;
     padding: 12px;
-    background-color: #222222;
+    background-color: var(--on-background-color);
 }
 
 .gameTile {
@@ -196,7 +205,7 @@ input {
 }
 
 .gameTile:not(.canPlace, .red, .yellow)::after {
-    filter: brightness(30%);
+    filter: brightness(80%);
 }
 
 .gameTile.canPlace {
@@ -212,7 +221,7 @@ input {
 }
 
 .gameTile.canPlace:hover::after {
-    filter: brightness(130%);
+    filter: brightness(90%);
 }
 
 .fall::after {
