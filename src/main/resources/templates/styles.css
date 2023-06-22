@@ -3,12 +3,16 @@
     'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro',
     'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
 
-    --background-color: #000000;
+    --background-color: #FEFEFE;
+    --on-background-color: #EFEFEF;
+    --input-color: #DDDDDD;
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
         --background-color: #333333;
+        --on-background-color: #222222;
+        --input-color: #777777;
     }
 }
 
@@ -54,11 +58,11 @@ main {
 }
 
 .input-form {
-    border: 2px solid #555555;
+    /*border: 2px solid #555555;*/
     box-shadow: 0 2px 10px black;
     border-radius: 16px;
     padding: 36px;
-    background-color: #222222;
+    background-color: var(--on-background-color);
 
     width: clamp(300px, 40%, 500px);
     height: auto;
@@ -101,7 +105,7 @@ label {
     font-size: 1.25rem;
     border: 2px solid #555555;
     border-radius: 8px;
-    background-color: #222222;
+    background-color: var(--on-background-color);
     box-shadow: 0 2px 4px black;
 }
 
@@ -138,7 +142,7 @@ input {
     font-size: 1.35rem;
     border: 2px solid #555555;
     border-radius: 8px;
-    background-color: #777777;
+    background-color: var(--input-color);
     box-shadow: 0 2px 4px black;
 }
 
@@ -249,39 +253,96 @@ input {
     }
 }
 
-.replay {
-    padding: 16px;
-    width: clamp(100px, 50%, 200px);
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-
-    font-size: 1rem;
-    border: 2px solid #555555;
-    border-radius: 8px;
-    background-color: #222222;
+#play-again {
+    max-width: 20rem;
 }
 
-.replay::after {
-    content: '';
+#loading[open] {
     position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    min-width: 25rem;
+    width: 25%;
+    max-width: 35rem;
+    height: 25%;
+    min-height: 18rem;
+    isolation: isolate;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15%;
+
+    background: var(--on-background-color);
+    box-shadow: 0 0 20px black;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: none;
+}
+
+#loading p {
+    font-size: 2rem;
+    z-index: 99;
+}
+
+.loading-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+}
+
+.loading-bar span {
+    --size: 5rem;
+    --color: black;
+    --animation-delay: 0ms;
+
+    width: var(--size);
+    height: var(--size);
+    display: inline-block;
+
     border-radius: 50%;
-    width: 100%;
-    aspect-ratio: 1;
-    inset: 0;
-    margin: auto;
-    z-index: -1;
+    background: var(--color);
 
-    background-color: #b80006;
-    scale: 0;
-
-    transition: scale 300ms;
+    animation: loading 2000ms var(--animation-delay) ease-in-out infinite;
 }
 
-.replay:not(:disabled) {
-    cursor: pointer;
-}
+@keyframes loading {
+    0% {
+        opacity: 0;
+        translate: 0 -100%;
+        scale: 0.5;
+    }
 
-.replay:not(:disabled):hover::after {
-    scale: 1.2;
+    15% {
+        opacity: 0;
+        translate: 0 -100%;
+        scale: 0.5;
+    }
+
+    33% {
+        opacity: 1;
+        translate: 0 0;
+        scale: 1;
+    }
+
+    66% {
+        opacity: 1;
+        translate: 0;
+        scale: 1;
+    }
+
+    85% {
+        opacity: 0;
+        translate: 0 100%;
+        scale: 0.5;
+    }
+
+    100% {
+        opacity: 0;
+        translate: 0 100%;
+        scale: 0.5;
+    }
 }

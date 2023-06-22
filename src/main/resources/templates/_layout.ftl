@@ -11,6 +11,14 @@
         <style> <#include "./styles.css"> </style>
     </head>
         <body>
+            <dialog id="loading">
+                <div class="loading-bar">
+                    <span style="--animation-delay: 0ms; --color: red"></span>
+                    <span style="--animation-delay: 250ms; --color: gold"></span>
+                    <span style="--animation-delay: 500ms; --color: red"></span>
+                </div>
+                <p>Waiting for players to join...</p>
+            </dialog>
             <main>
                 <h1>Connect Four</h1>
                 <#nested>

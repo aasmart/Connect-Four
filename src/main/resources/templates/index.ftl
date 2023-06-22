@@ -11,8 +11,8 @@
         </#list>
     </div>
 
-    <button class="replay basic-button">
-        Replay Game
+    <button class="basic-button" id="play-again" disabled>
+        Play Again
     </button>
     <script> <#include "./game.js"> </script>
 </@layout.main>

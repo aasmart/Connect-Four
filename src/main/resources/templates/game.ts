@@ -103,6 +103,18 @@ function handleGameState(tiles: Element[], state: GameState) {
         tile.classList.toggle("canPlace", tileState.canPlace && canPlay);
 
         document.getElementById("state-title").innerText = getTitleString(state);
+
+        const replayButton = document.getElementById("play-again");
+        replayButton.toggleAttribute(
+            "disabled",
+            state.gameStatus == GameStatus.ACTIVE || state.gameStatus == GameStatus.WAITING_FOR_PLAYERS
+        );
+
+        const modal: HTMLDialogElement = document.getElementById("loading") as HTMLDialogElement;
+        if(state.gameStatus == GameStatus.WAITING_FOR_PLAYERS)
+            modal.showModal();
+        else
+            modal.close();
     })
 }
 
