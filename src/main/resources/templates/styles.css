@@ -60,6 +60,8 @@ h1 {
 h1 > hr {
     width: 100%;
     color: var(--accent-color);
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
     border-radius: 5px;
 }
 
@@ -298,6 +300,7 @@ input {
     padding: 1rem;
     border-radius: 0.5rem;
     border: none;
+    outline: none;
 }
 
 #loading p {
