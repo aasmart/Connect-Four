@@ -20,7 +20,10 @@
                 <p>Waiting for players to join...</p>
             </dialog>
             <main>
-                <h1>Connect Four</h1>
+                <h1>
+                    Connect Four
+                    <hr />
+                </h1>
                 <#nested>
             </main>
         </body>
