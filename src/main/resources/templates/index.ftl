@@ -7,12 +7,7 @@
     </h2>
     <div class="gameBoard">
         <#list state.gameTiles as tile>
-            <#if tile.canPlace == true>
-                <button class="gameTile canPlace" onclick="placePiece(${tile?counter - 1})"></button>
-            </#if>
-            <#if tile.canPlace == false>
-                <button class="gameTile ${tile.pieceType}" onclick="placePiece(${tile?counter - 1})"></button>
-            </#if>
+            <button class="gameTile" onclick="placePiece(${tile?counter - 1})"></button>
         </#list>
     </div>
 

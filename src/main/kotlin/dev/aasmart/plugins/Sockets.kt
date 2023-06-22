@@ -19,9 +19,6 @@ import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashSet
 
-val connections: MutableMap<Int, MutableSet<PlayerConnection>> =
-    Collections.synchronizedMap(HashMap())
-
 fun Application.configureSockets() {
     install(WebSockets) {
         pingPeriod = Duration.ofSeconds(15)
@@ -53,17 +50,18 @@ fun Application.configureSockets() {
                     return@webSocket
                 }
 
-                // Connection stuff
+                val currentGame = gamesCacheMap[gameId]
+                if(currentGame == null) {
+                    close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Game does not exist"))
+                    return@webSocket
+                }
 
+                // Connection stuff
                 val connection = PlayerConnection(this, session.userId)
-                connections.putIfAbsent(gameId, Collections.synchronizedSet(LinkedHashSet()))
-                connections[gameId]?.let { it += connection }
+                currentGame.addConnection(game, connection)
 
                 try {
                     connection.session.send("Connected to game ${game.id}")
-
-                    val currentGame = gamesCacheMap[gameId] ?: throw Exception("Game doesnt exist")
-                    connection.session.send(Json.encodeToString(currentGame.collectAsState()))
 
                     for (frame in incoming) {
                         frame as? Frame.Text ?: continue
@@ -77,7 +75,7 @@ fun Application.configureSockets() {
                             currentGame.playRound(packet.placeIndex)
 
                         val state = currentGame.collectAsState()
-                        connections[gameId]?.forEach {
+                        currentGame.getConnections().forEach {
                             it.session.send(Json.encodeToString(state))
                         }
                     }
@@ -85,9 +83,7 @@ fun Application.configureSockets() {
                     println(e.localizedMessage)
                 } finally {
                     println("Session ${connection.session} disconnected")
-                    connections[gameId]?.let {
-                        it -= connection;
-                    }
+                    currentGame.removeConnection(game, connection)
                 }
             }
         }
