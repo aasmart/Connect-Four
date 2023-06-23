@@ -1,9 +1,6 @@
 package dev.aasmart.game
 
-import dev.aasmart.models.Game
-import dev.aasmart.models.GameStatus
-import dev.aasmart.models.PieceType
-import dev.aasmart.models.PlayerConnection
+import dev.aasmart.models.*
 import dev.aasmart.utils.*
 import io.ktor.websocket.*
 import kotlinx.serialization.encodeToString
@@ -16,6 +13,7 @@ class ConnectFourGame(
     private val boardHeight: Int = 6,
     private var isPlayerOneTurn: Boolean = true,
     private var gameStatus: GameStatus = GameStatus.WAITING_FOR_PLAYERS,
+    private val gameId: Int
 ) {
     private val gameTiles = MutableList(boardWidth * boardHeight) { PieceType.EMPTY }.toTypedArray()
     private val playerConnections: MutableSet<PlayerConnection> = Collections.synchronizedSet(LinkedHashSet())
@@ -143,6 +141,7 @@ class ConnectFourGame(
         gameStatus = gameStatus.intValue,
         isPlayerOneTurn = isPlayerOneTurn,
         playerOneRematch = playerOneRematch,
-        playerTwoRematch = playerTwoRematch
+        playerTwoRematch = playerTwoRematch,
+        joinCode = JoinCodes.codeMap.filterValues { it == gameId }.keys.first()
     )
 }

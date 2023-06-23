@@ -135,10 +135,23 @@ function handleGameState(tiles: Element[], state: GameState) {
             const modalContent = modal.getElementsByTagName("p")[0];
             switch (state.gameStatus) {
                 case GameStatus.WAITING_FOR_PLAYERS:
-                    modalContent.innerText = "Waiting for players to join..."
+                    modalContent.innerText = "Waiting for players...\n Join Code: ";
+                    const joinCode = document.createElement("span");
+                    joinCode.classList.add("join-code");
+                    joinCode.innerHTML = state.joinCode;
+
+                    joinCode.addEventListener("click", () => {
+                        navigator.clipboard.writeText(state.joinCode).then(() => {
+                            console.log("Copied join code to clipboard")
+                        }, () => {
+                            console.log("Couldn't copy join code to clipboard")
+                        })
+                    })
+
+                    modalContent.append(joinCode);
                     break;
                 case GameStatus.PLAYER_DISCONNECTED:
-                    modalContent.innerText = "Player has disconnected; waiting for them to reconnect"
+                    modalContent.innerText = "Player has disconnected; waiting for them to reconnect";
             }
             modal.showModal();
         } else
@@ -198,7 +211,8 @@ interface GameState {
     isPlayerOneTurn: boolean
     gameStatus: GameStatus,
     playerOneRematch: boolean,
-    playerTwoRematch: boolean
+    playerTwoRematch: boolean,
+    joinCode: string
 }
 
 interface PlayerData {

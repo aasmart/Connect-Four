@@ -10,6 +10,7 @@ data class GameState(
     val gameStatus: Int,
     val playerOneRematch: Boolean,
     val playerTwoRematch: Boolean,
+    val joinCode: String
 ) {
 
     override fun equals(other: Any?): Boolean {

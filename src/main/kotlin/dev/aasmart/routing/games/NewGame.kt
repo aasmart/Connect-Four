@@ -12,6 +12,9 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
 fun Route.newGame() {
+    val maxJoinCodeReattempts = 5;
+    val joinCodeLength = 6;
+
     post {
         val session = call.sessions.get<PlayerSession>()
         if(session == null) {
@@ -25,9 +28,18 @@ fun Route.newGame() {
             return@post
         }
 
-        gamesCacheMap.putIfAbsent(game.id, ConnectFourGame())
+        gamesCacheMap.putIfAbsent(game.id, ConnectFourGame(gameId = game.id))
 
-        JoinCodes.codeMap[game.id] = game.id
+        for(i in 0..(maxJoinCodeReattempts)) {
+            val code: StringBuilder = StringBuilder()
+            for(num in (0 until joinCodeLength))
+                code.append((0 until 10).random())
+
+            if(JoinCodes.codeMap.putIfAbsent(code.toString(), game.id) == null)
+                break
+            else if(i == maxJoinCodeReattempts)
+                JoinCodes.codeMap[game.id.toString()] = game.id
+        }
 
         call.sessions.set(PlayerSession(
             userId = session.userId,

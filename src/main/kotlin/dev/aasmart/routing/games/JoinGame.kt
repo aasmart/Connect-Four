@@ -11,7 +11,7 @@ import io.ktor.server.sessions.*
 
 fun Route.joinGame() {
     get("/join") {
-        val joinCode = call.request.queryParameters["join-code"]?.toInt()
+        val joinCode = call.request.queryParameters["join-code"]
 
         val playerId = call.sessions.get<PlayerSession>()?.userId
         if(playerId == null) {
@@ -23,9 +23,7 @@ fun Route.joinGame() {
         }
 
         val gameId = JoinCodes.codeMap[joinCode]
-
         val game = gameId?.let { id -> gamesFacade.getGame(id) }
-
         if(game == null) {
             call.respond(HttpStatusCode.NotFound, "Game does not exist")
             return@get
