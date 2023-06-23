@@ -19,7 +19,8 @@ enum class GameStatus(val intValue: Int) {
     WON(2),
     PLAYER_ONE_WON(3),
     PLAYER_TWO_WON(4),
-    WAITING_FOR_PLAYERS(5)
+    WAITING_FOR_PLAYERS(5),
+    PLAYER_DISCONNECTED(6)
 }
 
 @Serializable
@@ -34,22 +35,22 @@ enum class GameRole {
 data class Game(
     val id: Int,
     val playerOneId: String,
-    val playTwoId: String,
+    val playerTwoId: String,
 //    val board: GameBoard,
 //    val gameState: GameState
 ) {
     fun isFull(): Boolean {
-        return playTwoId.isNotEmpty() && playerOneId.isNotEmpty()
+        return playerTwoId.isNotEmpty() && playerOneId.isNotEmpty()
     }
 
     fun hasPlayer(playerId: String): Boolean {
-        return playerOneId == playerId || playTwoId == playerId
+        return playerOneId == playerId || playerTwoId == playerId
     }
 
     fun getPlayerRole(playerId: String): GameRole {
         return when (playerId) {
             playerOneId -> GameRole.PLAYER_ONE
-            playTwoId -> GameRole.PLAYER_TWO
+            playerTwoId -> GameRole.PLAYER_TWO
             else -> GameRole.SPECTATOR
         }
     }

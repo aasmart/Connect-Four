@@ -1,6 +1,5 @@
 package dev.aasmart.game
 
-import dev.aasmart.dao.games.gamesFacade
 import dev.aasmart.models.Game
 import dev.aasmart.models.GameStatus
 import dev.aasmart.models.PieceType
@@ -20,10 +19,12 @@ class ConnectFourGame(
 ) {
     private val gameTiles = MutableList(boardWidth * boardHeight) { PieceType.EMPTY }.toTypedArray()
     private val playerConnections: MutableSet<PlayerConnection> = Collections.synchronizedSet(LinkedHashSet())
+    private var playerOneRematch: Boolean = false
+    private var playerTwoRematch: Boolean = false
 
     suspend fun addConnection(game: Game, connection: PlayerConnection) {
         playerConnections += connection
-        updateConnectionStatus(game)
+        gameStatus = if (hasEnoughPlayers(game)) GameStatus.ACTIVE else GameStatus.WAITING_FOR_PLAYERS
 
         playerConnections.forEach {
             it.session.send(Json.encodeToString(collectAsState()))
@@ -32,7 +33,7 @@ class ConnectFourGame(
 
     suspend fun removeConnection(game: Game, connection: PlayerConnection) {
         playerConnections -= connection
-        updateConnectionStatus(game)
+        gameStatus = if (hasEnoughPlayers(game)) GameStatus.ACTIVE else GameStatus.PLAYER_DISCONNECTED
 
         playerConnections.forEach {
             it.session.send(Json.encodeToString(collectAsState()))
@@ -41,16 +42,12 @@ class ConnectFourGame(
 
     fun getConnections(): Set<PlayerConnection> = playerConnections.toSet()
 
-    private fun updateConnectionStatus(game: Game) {
-        if (gameStatus != GameStatus.ACTIVE && gameStatus != GameStatus.WAITING_FOR_PLAYERS)
-            return
+    private fun hasEnoughPlayers(game: Game): Boolean {
+        if (gameStatus != GameStatus.ACTIVE && gameStatus != GameStatus.WAITING_FOR_PLAYERS && gameStatus != GameStatus.PLAYER_DISCONNECTED)
+            return true
 
-        gameStatus =
-            if (playerConnections.any { it.playerId == game.playerOneId } &&
-                playerConnections.any { it.playerId == game.playTwoId })
-                GameStatus.ACTIVE
-            else
-                GameStatus.WAITING_FOR_PLAYERS
+        return playerConnections.any { it.playerId == game.playerOneId } &&
+                playerConnections.any { it.playerId == game.playerTwoId }
     }
 
     fun getIsPlayerOneTurn(): Boolean {
@@ -62,7 +59,8 @@ class ConnectFourGame(
                 gameTiles[index] == PieceType.EMPTY &&
                 gameStatus == GameStatus.ACTIVE &&
                 (index + boardWidth >= gameTiles.size || gameTiles[index + boardWidth] != PieceType.EMPTY) &&
-                gameStatus != GameStatus.WAITING_FOR_PLAYERS
+                gameStatus != GameStatus.WAITING_FOR_PLAYERS &&
+                gameStatus != GameStatus.PLAYER_DISCONNECTED
     }
 
     private fun getCurrentPlayerPieceType(): PieceType {
@@ -100,13 +98,42 @@ class ConnectFourGame(
         return GameStatus.ACTIVE
     }
 
-    fun playRound(placeIndex: Int): Boolean {
+    private suspend fun resetGame() {
+        isPlayerOneTurn = true
+        gameStatus = GameStatus.ACTIVE
+        gameTiles.fill(PieceType.EMPTY)
+        playerOneRematch = false
+        playerTwoRematch = false
+
+        playerConnections.forEach {
+            it.session.send(Json.encodeToString(collectAsState()))
+        }
+    }
+
+    suspend fun requestRematch(game: Game, playerId: String, cancelRequest: Boolean) {
+        playerOneRematch = (playerId == game.playerOneId || playerOneRematch) && !cancelRequest
+        playerTwoRematch = (playerId == game.playerTwoId || playerTwoRematch) && !cancelRequest
+
+        if(playerOneRematch && playerTwoRematch)
+            resetGame()
+        else {
+            playerConnections.forEach {
+                it.session.send(Json.encodeToString(collectAsState()))
+            }
+        }
+    }
+
+    suspend fun playRound(placeIndex: Int): Boolean {
         if (!placePiece(placeIndex))
             return false
 
         gameStatus = checkGameStatus(placeIndex, getCurrentPlayerPieceType())
         if (gameStatus == GameStatus.ACTIVE)
             isPlayerOneTurn = !isPlayerOneTurn
+
+        playerConnections.forEach {
+            it.session.send(Json.encodeToString(collectAsState()))
+        }
 
         return true
     }
@@ -115,5 +142,7 @@ class ConnectFourGame(
         gameTiles = gameTiles.mapIndexed { index, piece -> GameTile(piece.int, canPlaceOnTile(index)) }.toTypedArray(),
         gameStatus = gameStatus.intValue,
         isPlayerOneTurn = isPlayerOneTurn,
+        playerOneRematch = playerOneRematch,
+        playerTwoRematch = playerTwoRematch
     )
 }

@@ -12,7 +12,7 @@ import io.ktor.server.sessions.*
 
 fun Route.getPlayerData() {
     authenticate("auth-session") {
-        get("/{game-id}/player-data") {
+        get("/player-data") {
             val gameId = call.parameters["game-id"]?.toInt()
 
             if (gameId == null) {

@@ -11,8 +11,9 @@
         </#list>
     </div>
 
-    <button class="basic-button" id="play-again" disabled>
-        Play Again
+    <button type="submit" class="basic-button" id="play-again" onclick="requestRematch()" disabled data-action="normal">
+        Request Rematch
     </button>
+
     <script> <#include "./game.js"> </script>
 </@layout.main>

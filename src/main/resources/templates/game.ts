@@ -1,9 +1,11 @@
-const SOCKET_ROUTE_URI = "ws://127.0.0.1:8080/api/game"
-const API_ROUTE_URI = "http://127.0.0.1:8080/api/game"
+const ip = "127.0.0.1:8080"
+const SOCKET_ROUTE_URI = `ws://${ip}/api/game`
+const API_ROUTE_URI = `http://${ip}/api/game`
 
 let client: WebSocket;
 let player: PlayerData;
 let lastState: GameState
+let gameId: string
 
 window.addEventListener("load", () => {
     // @ts-ignore
@@ -12,7 +14,7 @@ window.addEventListener("load", () => {
     const location = window.location.href;
     const splitLocation = location.split("/");
 
-    const gameId = splitLocation[splitLocation.length - 1];
+    gameId = splitLocation[splitLocation.length - 1];
 
     client = new WebSocket(`${SOCKET_ROUTE_URI}/${gameId}`);
 
@@ -75,6 +77,7 @@ function getTitleString(state: GameState) {
             title = "The game has ended in a draw"
             break;
         case GameStatus.WAITING_FOR_PLAYERS:
+        case GameStatus.PLAYER_DISCONNECTED:
             title = "Waiting for players to join"
             break;
         default:
@@ -91,8 +94,10 @@ function handleGameState(tiles: Element[], state: GameState) {
         const pieceType = PieceType[tileState.pieceType]
 
         if(tileState.pieceType != PieceType.EMPTY) {
-            tile.classList.add("fall")
+            tile.classList.add("fall");
             tile.classList.add(pieceType.toLowerCase());
+        } else {
+            tile.classList.remove("red", "yellow", "fall");
         }
 
         const canPlay =
@@ -105,25 +110,66 @@ function handleGameState(tiles: Element[], state: GameState) {
         document.getElementById("state-title").innerText = getTitleString(state);
 
         const replayButton = document.getElementById("play-again");
-        replayButton.toggleAttribute(
-            "disabled",
-            state.gameStatus == GameStatus.ACTIVE || state.gameStatus == GameStatus.WAITING_FOR_PLAYERS
-        );
+
+        if(state.playerOneRematch && player.playerRole == "PLAYER_ONE" ||
+            state.playerTwoRematch && player.playerRole == "PLAYER_TWO"
+        ) {
+            replayButton.innerText = "Cancel Rematch Request";
+            replayButton.toggleAttribute("disabled", false);
+            replayButton.setAttribute("data-action", "destructive");
+        } else if(state.playerOneRematch || state.playerTwoRematch) {
+            replayButton.innerText = "Accept Rematch Request";
+            replayButton.toggleAttribute("disabled", false);
+            replayButton.setAttribute("data-action", "normal");
+        } else {
+            replayButton.innerText = "Request Rematch"
+            replayButton.toggleAttribute(
+                "disabled",
+                state.gameStatus == GameStatus.ACTIVE || state.gameStatus == GameStatus.WAITING_FOR_PLAYERS
+            );
+            replayButton.setAttribute("data-action", "normal");
+        }
 
         const modal: HTMLDialogElement = document.getElementById("loading") as HTMLDialogElement;
-        if(state.gameStatus == GameStatus.WAITING_FOR_PLAYERS)
+        if(state.gameStatus == GameStatus.WAITING_FOR_PLAYERS || state.gameStatus == GameStatus.PLAYER_DISCONNECTED) {
+            const modalContent = modal.getElementsByTagName("p")[0];
+            switch (state.gameStatus) {
+                case GameStatus.WAITING_FOR_PLAYERS:
+                    modalContent.innerText = "Waiting for players to join..."
+                    break;
+                case GameStatus.PLAYER_DISCONNECTED:
+                    modalContent.innerText = "Player has disconnected; waiting for them to reconnect"
+            }
             modal.showModal();
-        else
+        } else
             modal.close();
     })
 }
 
 function placePiece(index: number) {
-    const packet: Packet = {
-        placeIndex: index
+    fetch(`${API_ROUTE_URI}/${gameId}/play-piece/${index}`, {
+        method: "POST"
+    }).then(res => {
+        if(!res.ok)
+            throw new Error();
+    })
+}
+
+function requestRematch() {
+    let action= "send";
+
+    if(lastState.playerOneRematch && player.playerRole == "PLAYER_ONE" ||
+        lastState.playerTwoRematch && player.playerRole == "PLAYER_TWO"
+    ) {
+        action = "withdraw";
     }
 
-    client.send(JSON.stringify(packet))
+    fetch(`${API_ROUTE_URI}/${gameId}/rematch-request/${action}`, {
+        method: "POST"
+    }).then(res => {
+        if(!res.ok)
+            throw new Error();
+    })
 }
 
 enum PieceType {
@@ -138,11 +184,8 @@ enum GameStatus {
     WON,
     PLAYER_ONE_WON,
     PLAYER_TWO_WON,
-    WAITING_FOR_PLAYERS
-}
-
-interface Packet {
-    placeIndex: number
+    WAITING_FOR_PLAYERS,
+    PLAYER_DISCONNECTED
 }
 
 interface GameTile {
@@ -152,8 +195,10 @@ interface GameTile {
 
 interface GameState {
     gameTiles: GameTile[]
-    isPlayerOneTurn: Boolean
-    gameStatus: GameStatus
+    isPlayerOneTurn: boolean
+    gameStatus: GameStatus,
+    playerOneRematch: boolean,
+    playerTwoRematch: boolean
 }
 
 interface PlayerData {

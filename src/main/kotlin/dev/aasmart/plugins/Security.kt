@@ -1,7 +1,6 @@
 package dev.aasmart.plugins
 
 import dev.aasmart.dao.games.gamesFacade
-import dev.aasmart.models.GameRole
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*
 import io.ktor.server.sessions.*
@@ -36,7 +35,7 @@ fun Application.configureSecurity() {
                 val game = gamesFacade.getGame(player.gameId ?: -1) ?: return@validate null
 
                 if(game.playerOneId != player.userId &&
-                    game.playTwoId != player.userId &&
+                    game.playerTwoId != player.userId &&
                     game.isFull()
                 )
                     return@validate null

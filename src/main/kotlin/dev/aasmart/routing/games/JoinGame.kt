@@ -35,7 +35,7 @@ fun Route.joinGame() {
             gamesFacade.editGame(
                 gameId = game.id,
                 playerOneId = game.playerOneId.ifEmpty { playerId },
-                playerTwoId = game.playTwoId.ifEmpty { playerId }
+                playerTwoId = game.playerTwoId.ifEmpty { playerId }
             )
 
         call.sessions.set(PlayerSession(

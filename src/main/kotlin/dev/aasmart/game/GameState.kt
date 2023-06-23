@@ -7,7 +7,9 @@ import kotlinx.serialization.Serializable
 data class GameState(
     val gameTiles: Array<GameTile>,
     val isPlayerOneTurn: Boolean,
-    val gameStatus: Int
+    val gameStatus: Int,
+    val playerOneRematch: Boolean,
+    val playerTwoRematch: Boolean,
 ) {
 
     override fun equals(other: Any?): Boolean {

@@ -11,7 +11,7 @@ class GamesDAOFacadeImpl : GamesDAOFacade {
     override fun resultRowToObject(row: ResultRow) = Game(
         id = row[Games.id],
         playerOneId = row[Games.playerOneId],
-        playTwoId = row[Games.playerTwoId]
+        playerTwoId = row[Games.playerTwoId]
     )
 
     override suspend fun createGame(playerOneId: String, playerTwoId: String): Game? = dbQuery {

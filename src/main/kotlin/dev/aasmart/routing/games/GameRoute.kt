@@ -6,6 +6,12 @@ fun Route.game() {
     route("/game") {
         newGame()
         joinGame()
-        getPlayerData()
+
+        route("/{game-id}") {
+            getPlayerData()
+            rematchRequest()
+            playPiece()
+            gameSocket()
+        }
     }
 }
