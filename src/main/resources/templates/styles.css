@@ -324,8 +324,8 @@ input {
     color: var(--accent-color);
     cursor: pointer;
     background-color: var(--background-color);
-    padding-inline: 0.25rem;
-    border-radius: 4px;
+    padding-inline: 0.5rem;
+    border-radius: 8px;
 }
 
 .loading-bar {
