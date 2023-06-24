@@ -16,6 +16,10 @@ import io.ktor.server.request.*
 
 fun Application.configureRouting() {
     routing {
+        staticResources("/static", "assets") {
+
+        }
+
         route("/api") {
             login()
             game()

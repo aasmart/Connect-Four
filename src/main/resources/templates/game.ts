@@ -4,8 +4,13 @@ const API_ROUTE_URI = `http://${ip}/api/game`
 
 let client: WebSocket;
 let player: PlayerData;
-let lastState: GameState
-let gameId: string
+let lastState: GameState;
+let gameId: string;
+
+const copySvgPromise = fetch("/static/copy.svg")
+    .then(res => res.text())
+    .then(text => new DOMParser().parseFromString(text, "text/xml"))
+    .then(html => html.getElementsByTagName("svg")[0]);
 
 window.addEventListener("load", () => {
     // @ts-ignore
@@ -122,7 +127,7 @@ function handleGameState(tiles: Element[], state: GameState) {
             replayButton.toggleAttribute("disabled", false);
             replayButton.setAttribute("data-action", "normal");
         } else {
-            replayButton.innerText = "Request Rematch"
+            replayButton.innerText = "Request Rematch";
             replayButton.toggleAttribute(
                 "disabled",
                 state.gameStatus == GameStatus.ACTIVE || state.gameStatus == GameStatus.WAITING_FOR_PLAYERS
@@ -136,17 +141,23 @@ function handleGameState(tiles: Element[], state: GameState) {
             switch (state.gameStatus) {
                 case GameStatus.WAITING_FOR_PLAYERS:
                     modalContent.innerText = "Waiting for players...\n Join Code: ";
-                    const joinCode = document.createElement("span");
+                    const joinCode = document.createElement("button");
                     joinCode.classList.add("join-code");
                     joinCode.innerHTML = state.joinCode;
+                    joinCode.setAttribute("title", "Copy code to clipboard");
+                    copySvgPromise.then(svg => joinCode.append(svg))
 
                     joinCode.addEventListener("click", () => {
                         navigator.clipboard.writeText(state.joinCode).then(() => {
-                            console.log("Copied join code to clipboard")
+                            joinCode.setAttribute("copied", "true");
+                            setTimeout(() => {
+                                joinCode.setAttribute("copied", "false");
+                            }, 1500);
                         }, () => {
-                            console.log("Couldn't copy join code to clipboard")
+                            console.log("Couldn't copy join code to clipboard");
                         })
                     })
+
 
                     modalContent.append(joinCode);
                     break;
