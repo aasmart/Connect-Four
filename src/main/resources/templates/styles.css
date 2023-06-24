@@ -33,6 +33,25 @@
     }
 }
 
+@media (prefers-reduced-motion) {
+    .fall {
+        animation: none;
+    }
+
+    #loading[open] .loading-bar span {
+        animation-duration: 7.5s;
+    }
+
+    .join-code::after,
+    .join-code::before {
+        transition: none;
+    }
+
+    .basic-button::after {
+        transition: none;
+    }
+}
+
 *,
 *::before,
 *::after {
@@ -381,7 +400,7 @@ input {
     translate: 0 calc(var(--offset));
 
     border-radius: 8px;
-    color: var(--foreground-color)
+    color: white;
 }
 
 .join-code::before {
