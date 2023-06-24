@@ -78,6 +78,18 @@ function getTitleString(state: GameState) {
             else
                 title = "Player Two wins!"
             break;
+        case GameStatus.PLAYER_ONE_FORFEIT:
+            if(player.playerRole === "PLAYER_TWO")
+                title = "You won by forfeit!"
+            else
+                title = "Player Two wins by forfeit!"
+            break;
+        case GameStatus.PLAYER_TWO_FORFEIT:
+            if(player.playerRole === "PLAYER_ONE")
+                title = "You won by forfeit!"
+            else
+                title = "Player Two wins by forfeit!"
+            break;
         case GameStatus.DRAWN:
             title = "The game has ended in a draw"
             break;
@@ -91,6 +103,46 @@ function getTitleString(state: GameState) {
     }
 
     return title
+}
+
+function handleDialogModal(state: GameState) {
+    const modal: HTMLDialogElement = document.getElementById("popup") as HTMLDialogElement;
+
+    const modalContent = modal.getElementsByTagName("p")[0];
+    switch (state.gameStatus) {
+        case GameStatus.WAITING_FOR_PLAYERS:
+            modalContent.innerText = "Waiting for players...\n Join Code: ";
+            modal.toggleAttribute("data-isLoading", true);
+
+            const joinCode = document.createElement("button");
+            joinCode.classList.add("join-code");
+            joinCode.innerHTML = state.joinCode;
+            joinCode.setAttribute("title", "Copy code to clipboard");
+            copySvgPromise.then(svg => joinCode.append(svg))
+            joinCode.addEventListener("click", () => {
+                navigator.clipboard.writeText(state.joinCode).then(() => {
+                    joinCode.setAttribute("copied", "true");
+                    setTimeout(() => {
+                        joinCode.setAttribute("copied", "false");
+                    }, 1500);
+                }, () => {
+                    console.log("Couldn't copy join code to clipboard");
+                })
+            })
+            modalContent.append(joinCode);
+
+            modal.showModal();
+            break;
+        case GameStatus.PLAYER_DISCONNECTED:
+            modal.toggleAttribute("data-isLoading", true);
+            modalContent.innerText = "Player has disconnected; waiting for them to reconnect";
+
+            modal.showModal();
+            break;
+        default:
+            modal.close();
+            break;
+    }
 }
 
 function handleGameState(tiles: Element[], state: GameState) {
@@ -115,7 +167,6 @@ function handleGameState(tiles: Element[], state: GameState) {
         document.getElementById("state-title").innerText = getTitleString(state);
 
         const replayButton = document.getElementById("play-again");
-
         if(state.playerOneRematch && player.playerRole == "PLAYER_ONE" ||
             state.playerTwoRematch && player.playerRole == "PLAYER_TWO"
         ) {
@@ -135,38 +186,17 @@ function handleGameState(tiles: Element[], state: GameState) {
             replayButton.setAttribute("data-action", "normal");
         }
 
-        const modal: HTMLDialogElement = document.getElementById("loading") as HTMLDialogElement;
-        if(state.gameStatus == GameStatus.WAITING_FOR_PLAYERS || state.gameStatus == GameStatus.PLAYER_DISCONNECTED) {
-            const modalContent = modal.getElementsByTagName("p")[0];
-            switch (state.gameStatus) {
-                case GameStatus.WAITING_FOR_PLAYERS:
-                    modalContent.innerText = "Waiting for players...\n Join Code: ";
-                    const joinCode = document.createElement("button");
-                    joinCode.classList.add("join-code");
-                    joinCode.innerHTML = state.joinCode;
-                    joinCode.setAttribute("title", "Copy code to clipboard");
-                    copySvgPromise.then(svg => joinCode.append(svg))
+        const forfeitButton = document.getElementById("leave-game");
+        forfeitButton.toggleAttribute(
+            "disabled",
+            state.gameStatus == GameStatus.WAITING_FOR_PLAYERS || state.gameStatus == GameStatus.PLAYER_DISCONNECTED
+        );
+        if(state.gameStatus == GameStatus.ACTIVE || state.gameStatus == GameStatus.PLAYER_DISCONNECTED)
+            forfeitButton.innerText = "Forfeit";
+        else
+            forfeitButton.innerText = "Exit Game";
 
-                    joinCode.addEventListener("click", () => {
-                        navigator.clipboard.writeText(state.joinCode).then(() => {
-                            joinCode.setAttribute("copied", "true");
-                            setTimeout(() => {
-                                joinCode.setAttribute("copied", "false");
-                            }, 1500);
-                        }, () => {
-                            console.log("Couldn't copy join code to clipboard");
-                        })
-                    })
-
-
-                    modalContent.append(joinCode);
-                    break;
-                case GameStatus.PLAYER_DISCONNECTED:
-                    modalContent.innerText = "Player has disconnected; waiting for them to reconnect";
-            }
-            modal.showModal();
-        } else
-            modal.close();
+        handleDialogModal(state)
     })
 }
 
@@ -196,6 +226,20 @@ function requestRematch() {
     })
 }
 
+function exitGame() {
+    if(lastState.gameStatus != GameStatus.ACTIVE) {
+        window.location.href = `http://${ip}`;
+        return;
+    }
+
+    fetch(`${API_ROUTE_URI}/${gameId}/forfeit`, {
+        method: "POST"
+    }).then(res => {
+        if(!res.ok)
+            throw new Error();
+    })
+}
+
 enum PieceType {
     RED,
     YELLOW,
@@ -209,7 +253,9 @@ enum GameStatus {
     PLAYER_ONE_WON,
     PLAYER_TWO_WON,
     WAITING_FOR_PLAYERS,
-    PLAYER_DISCONNECTED
+    PLAYER_DISCONNECTED,
+    PLAYER_ONE_FORFEIT,
+    PLAYER_TWO_FORFEIT,
 }
 
 interface GameTile {

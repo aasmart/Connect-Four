@@ -12,6 +12,7 @@ fun Route.game() {
             rematchRequest()
             playPiece()
             gameSocket()
+            forfeit()
         }
     }
 }

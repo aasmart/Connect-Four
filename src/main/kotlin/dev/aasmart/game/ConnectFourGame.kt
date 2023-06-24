@@ -22,7 +22,9 @@ class ConnectFourGame(
 
     suspend fun addConnection(game: Game, connection: PlayerConnection) {
         playerConnections += connection
-        gameStatus = if (hasEnoughPlayers(game)) GameStatus.ACTIVE else GameStatus.WAITING_FOR_PLAYERS
+
+        if(gameStatus == GameStatus.WAITING_FOR_PLAYERS || gameStatus == GameStatus.PLAYER_DISCONNECTED)
+            gameStatus = if (hasEnoughPlayers(game)) GameStatus.ACTIVE else GameStatus.WAITING_FOR_PLAYERS
 
         playerConnections.forEach {
             it.session.send(Json.encodeToString(collectAsState()))
@@ -31,7 +33,9 @@ class ConnectFourGame(
 
     suspend fun removeConnection(game: Game, connection: PlayerConnection) {
         playerConnections -= connection
-        gameStatus = if (hasEnoughPlayers(game)) GameStatus.ACTIVE else GameStatus.PLAYER_DISCONNECTED
+
+        if(gameStatus == GameStatus.ACTIVE)
+            gameStatus = if (hasEnoughPlayers(game)) GameStatus.ACTIVE else GameStatus.PLAYER_DISCONNECTED
 
         playerConnections.forEach {
             it.session.send(Json.encodeToString(collectAsState()))
@@ -56,9 +60,7 @@ class ConnectFourGame(
         return index in 0 until (gameTiles.size) &&
                 gameTiles[index] == PieceType.EMPTY &&
                 gameStatus == GameStatus.ACTIVE &&
-                (index + boardWidth >= gameTiles.size || gameTiles[index + boardWidth] != PieceType.EMPTY) &&
-                gameStatus != GameStatus.WAITING_FOR_PLAYERS &&
-                gameStatus != GameStatus.PLAYER_DISCONNECTED
+                (index + boardWidth >= gameTiles.size || gameTiles[index + boardWidth] != PieceType.EMPTY)
     }
 
     private fun getCurrentPlayerPieceType(): PieceType {
@@ -121,6 +123,21 @@ class ConnectFourGame(
         }
     }
 
+    suspend fun forfeit(game: Game, playerId: String): Boolean {
+        if(gameStatus != GameStatus.ACTIVE)
+            return false
+
+        gameStatus = if(game.playerOneId == playerId) GameStatus.PLAYER_ONE_FORFEIT
+        else if(game.playerTwoId == playerId) GameStatus.PLAYER_TWO_FORFEIT
+        else gameStatus
+
+        playerConnections.forEach {
+            it.session.send(Json.encodeToString(collectAsState()))
+        }
+
+        return true
+    }
+
     suspend fun playRound(placeIndex: Int): Boolean {
         if (!placePiece(placeIndex))
             return false
@@ -138,7 +155,7 @@ class ConnectFourGame(
 
     fun collectAsState(): GameState = GameState(
         gameTiles = gameTiles.mapIndexed { index, piece -> GameTile(piece.int, canPlaceOnTile(index)) }.toTypedArray(),
-        gameStatus = gameStatus.intValue,
+        gameStatus = gameStatus.ordinal,
         isPlayerOneTurn = isPlayerOneTurn,
         playerOneRematch = playerOneRematch,
         playerTwoRematch = playerTwoRematch,

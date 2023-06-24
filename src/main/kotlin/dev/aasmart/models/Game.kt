@@ -13,14 +13,16 @@ enum class PieceType(val int: Int) {
 }
 
 @Serializable
-enum class GameStatus(val intValue: Int) {
-    ACTIVE(0),
-    DRAWN(1),
-    WON(2),
-    PLAYER_ONE_WON(3),
-    PLAYER_TWO_WON(4),
-    WAITING_FOR_PLAYERS(5),
-    PLAYER_DISCONNECTED(6)
+enum class GameStatus() {
+    ACTIVE,
+    DRAWN,
+    WON,
+    PLAYER_ONE_WON,
+    PLAYER_TWO_WON,
+    WAITING_FOR_PLAYERS,
+    PLAYER_DISCONNECTED,
+    PLAYER_ONE_FORFEIT,
+    PLAYER_TWO_FORFEIT
 }
 
 @Serializable

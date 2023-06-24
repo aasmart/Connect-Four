@@ -11,14 +11,16 @@
         <style> <#include "./styles.css"> </style>
     </head>
         <body>
-            <dialog id="loading">
+            <dialog id="popup" data-isLoading="false">
                 <div class="loading-bar">
                     <span style="--animation-delay: 0ms; --color: red"></span>
                     <span style="--animation-delay: 250ms; --color: gold"></span>
                     <span style="--animation-delay: 500ms; --color: red"></span>
                 </div>
-                <p>Waiting for players to join...</p>
+                <p></p>
+                <div id="popup-buttons" class="flex row centered"></div>
             </dialog>
+
             <main>
                 <div>
                     <h1>
