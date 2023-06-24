@@ -379,18 +379,26 @@ input {
     transition: color 250ms;
 }
 
+.join-code[data-can-copy="false"] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    cursor: text;
+}
+
 .join-code svg {
     fill: var(--foreground-color);
     transition: fill 250ms;
 }
 
-.join-code:hover,
-.join-code:focus-visible {
+.join-code[data-can-copy="true"]:hover,
+.join-code[data-can-copy="true"]:focus-visible {
     color: var(--accent-color);
 }
 
-.join-code:hover svg,
-.join-code:focus-visible svg {
+.join-code[data-can-copy="true"]:hover svg,
+.join-code[data-can-copy="true"]:focus-visible svg {
     fill: var(--accent-color);
 }
 

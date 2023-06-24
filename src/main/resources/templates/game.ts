@@ -122,18 +122,23 @@ function handleDialogModal(state: GameState) {
             const joinCode = document.createElement("button");
             joinCode.classList.add("join-code");
             joinCode.innerHTML = state.joinCode;
-            joinCode.setAttribute("title", "Copy code to clipboard");
-            copySvgPromise.then(svg => joinCode.append(svg))
-            joinCode.addEventListener("click", () => {
-                navigator.clipboard.writeText(state.joinCode).then(() => {
-                    joinCode.setAttribute("copied", "true");
-                    setTimeout(() => {
-                        joinCode.setAttribute("copied", "false");
-                    }, 1500);
-                }, () => {
-                    console.log("Couldn't copy join code to clipboard");
+            if(window.isSecureContext && navigator.clipboard) {
+                joinCode.setAttribute("title", "Copy code to clipboard");
+                copySvgPromise.then(svg => joinCode.append(svg))
+                joinCode.addEventListener("click", () => {
+                    navigator.clipboard.writeText(state.joinCode).then(() => {
+                        joinCode.setAttribute("copied", "true");
+                        setTimeout(() => {
+                            joinCode.setAttribute("copied", "false");
+                        }, 1500);
+                    }, () => {
+                        console.log("Couldn't copy join code to clipboard");
+                    })
                 })
-            })
+
+                joinCode.setAttribute("data-can-copy", "true");
+            } else
+                joinCode.setAttribute("data-can-copy", "false");
             modalContent.append(joinCode);
 
             const exitGameButton = document.createElement("button");
