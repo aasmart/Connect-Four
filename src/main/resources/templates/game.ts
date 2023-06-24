@@ -109,6 +109,11 @@ function handleDialogModal(state: GameState) {
     const modal: HTMLDialogElement = document.getElementById("popup") as HTMLDialogElement;
 
     const modalContent = modal.getElementsByTagName("p")[0];
+    const modalButtons = document.getElementById("popup-buttons");
+
+    while (modalButtons.firstChild)
+        modalButtons.removeChild(modalButtons.lastChild);
+
     switch (state.gameStatus) {
         case GameStatus.WAITING_FOR_PLAYERS:
             modalContent.innerText = "Waiting for players...\n Join Code: ";
@@ -130,6 +135,14 @@ function handleDialogModal(state: GameState) {
                 })
             })
             modalContent.append(joinCode);
+
+            const exitGameButton = document.createElement("button");
+            exitGameButton.onclick = exitGame;
+            exitGameButton.classList.add("basic-button");
+            exitGameButton.setAttribute("data-action", "destructive");
+            exitGameButton.innerText = "Exit Game";
+
+            document.getElementById("popup-buttons").append(exitGameButton);
 
             modal.showModal();
             break;

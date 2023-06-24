@@ -325,7 +325,7 @@ input {
     width: 25%;
     max-width: 35rem;
     height: 25%;
-    min-height: 18rem;
+    min-height: 20rem;
     isolation: isolate;
     z-index: 99;
     display: flex;
@@ -347,6 +347,14 @@ input {
     z-index: 99;
     text-align: center;
     white-space: break-spaces;
+}
+
+#popup-buttons {
+    width: 100%;
+}
+
+#popup-buttons > * {
+    flex: 1;
 }
 
 .join-code {
