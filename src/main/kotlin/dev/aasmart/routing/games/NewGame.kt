@@ -1,17 +1,15 @@
 package dev.aasmart.routing.games
 
-import dev.aasmart.dao.games.gamesFacade
-import dev.aasmart.game.ConnectFourGame
+import dev.aasmart.dao.games.GamesDAOFacade
 import dev.aasmart.models.JoinCodes
 import dev.aasmart.models.PlayerSession
-import dev.aasmart.models.gamesCacheMap
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Route.newGame() {
+fun Route.newGame(gamesFacade: GamesDAOFacade) {
     val maxJoinCodeReattempts = 5;
     val joinCodeLength = 6;
 
@@ -22,13 +20,14 @@ fun Route.newGame() {
             return@post
         }
 
-        val game = gamesFacade.createGame(session.userId, "")
+        val game = gamesFacade.create(
+            playerOneId = session.userId,
+            playerTwoId = ""
+        )
         if(game == null) {
             call.respond(HttpStatusCode.Conflict, "Couldn't create a new game")
             return@post
         }
-
-        gamesCacheMap.putIfAbsent(game.id, ConnectFourGame(gameId = game.id))
 
         for(i in 0..(maxJoinCodeReattempts)) {
             val code: StringBuilder = StringBuilder()

@@ -1,16 +1,16 @@
 package dev.aasmart.plugins
 
-import dev.aasmart.dao.games.gamesFacade
+import dev.aasmart.dao.games.GamesDAOFacade
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*
-import io.ktor.server.sessions.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
+import io.ktor.server.sessions.*
 import io.ktor.util.*
-import java.util.UUID
+import java.util.*
 
-fun Application.configureSecurity() {
+fun Application.configureSecurity(gamesFacade: GamesDAOFacade) {
     install(Sessions) {
         val secretSignKey = hex("6819b57a326945c1968f45236589")
         cookie<PlayerSession>("PLAYER_SESSION") {
@@ -32,7 +32,7 @@ fun Application.configureSecurity() {
     install(Authentication) {
         session<PlayerSession>("auth-session") {
             validate { player ->
-                val game = gamesFacade.getGame(player.gameId ?: -1) ?: return@validate null
+                val game = gamesFacade.get(player.gameId ?: -1) ?: return@validate null
 
                 if(game.playerOneId != player.userId &&
                     game.playerTwoId != player.userId &&

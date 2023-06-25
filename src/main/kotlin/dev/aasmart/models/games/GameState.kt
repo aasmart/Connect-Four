@@ -1,6 +1,5 @@
-package dev.aasmart.game
+package dev.aasmart.models.games
 
-import dev.aasmart.models.GameStatus
 import kotlinx.serialization.Serializable
 
 @Serializable

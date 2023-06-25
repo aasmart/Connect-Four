@@ -1,18 +1,15 @@
 package dev.aasmart.routing.games
 
-import dev.aasmart.dao.games.gamesFacade
+import dev.aasmart.dao.games.GamesDAOFacade
 import dev.aasmart.models.PlayerConnection
 import dev.aasmart.models.PlayerSession
-import dev.aasmart.models.gamesCacheMap
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
-fun Route.gameSocket() {
+fun Route.gameSocket(gamesFacade: GamesDAOFacade) {
     authenticate("auth-session") {
         webSocket {
             val session = call.sessions.get<PlayerSession>()
@@ -23,9 +20,8 @@ fun Route.gameSocket() {
                 return@webSocket
             }
 
-            val game = gamesFacade.getGame(gameId)
-            val currentGame = gamesCacheMap[gameId]
-            if (game == null || currentGame == null) {
+            val game = gamesFacade.get(gameId)
+            if (game == null) {
                 close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "No such game"))
                 return@webSocket
             }
@@ -37,7 +33,7 @@ fun Route.gameSocket() {
 
             // Connection stuff
             val connection = PlayerConnection(this, session.userId)
-            currentGame.addConnection(game, connection)
+            game.addConnection(connection)
 
             try {
                 connection.session.send("Connected to game ${game.id}")
@@ -46,16 +42,13 @@ fun Route.gameSocket() {
                     frame as? Frame.Text ?: continue
                     val text: String = frame.readText()
 
-                    val state = currentGame.collectAsState()
-                    currentGame.getConnections().forEach {
-                        it.session.send(Json.encodeToString(state))
-                    }
+                    game.broadcastState()
                 }
             } catch (e: Exception) {
                 println(e.localizedMessage)
             } finally {
                 println("Session ${connection.session} disconnected")
-                currentGame.removeConnection(game, connection)
+                game.removeConnection(connection)
             }
         }
     }

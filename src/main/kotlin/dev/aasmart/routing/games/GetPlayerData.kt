@@ -1,6 +1,6 @@
 package dev.aasmart.routing.games
 
-import dev.aasmart.dao.games.gamesFacade
+import dev.aasmart.dao.games.GamesDAOFacade
 import dev.aasmart.models.PlayerData
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*
@@ -10,7 +10,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Route.getPlayerData() {
+fun Route.getPlayerData(gamesFacade: GamesDAOFacade) {
     authenticate("auth-session") {
         get("/player-data") {
             val gameId = call.parameters["game-id"]?.toInt()
@@ -26,7 +26,7 @@ fun Route.getPlayerData() {
                 return@get
             }
 
-            val game = gamesFacade.getGame(gameId = gameId)
+            val game = gamesFacade.get(gameId = gameId)
 
             if(game == null) {
                 call.respond(HttpStatusCode.NotFound, "The game with id $gameId couldn't be found")

@@ -1,8 +1,7 @@
 package dev.aasmart.routing.games
 
-import dev.aasmart.dao.games.gamesFacade
+import dev.aasmart.dao.games.GamesDAOFacade
 import dev.aasmart.models.PlayerSession
-import dev.aasmart.models.gamesCacheMap
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -10,7 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Route.rematchRequest() {
+fun Route.rematchRequest(gamesFacade: GamesDAOFacade) {
     authenticate("auth-session") {
         post("/rematch-request/{action}") {
             var action = call.parameters["action"]?.lowercase()
@@ -29,9 +28,8 @@ fun Route.rematchRequest() {
                 return@post
             }
 
-            val game = gamesFacade.getGame(gameId)
-            val cachedGame = gamesCacheMap[gameId]
-            if(game == null || cachedGame == null) {
+            val game = gamesFacade.get(gameId)
+            if(game == null) {
                 call.respond(HttpStatusCode.NotFound, "Game does not exist")
                 return@post
             }
@@ -45,7 +43,7 @@ fun Route.rematchRequest() {
             val playerId = playerSession.userId
             val cancelRequest = action == "withdraw"
 
-            cachedGame.requestRematch(game, playerId, cancelRequest)
+            game.requestRematch(playerId, cancelRequest)
             if(cancelRequest)
                 call.respond(HttpStatusCode.OK, "Rematch request withdrawn")
             else

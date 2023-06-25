@@ -35,35 +35,26 @@ enum class GameRole {
 
 @Serializable
 data class Game(
-    val id: Int,
-    val playerOneId: String,
-    val playerTwoId: String,
-//    val board: GameBoard,
-//    val gameState: GameState
-) {
-    fun isFull(): Boolean {
-        return playerTwoId.isNotEmpty() && playerOneId.isNotEmpty()
-    }
-
-    fun hasPlayer(playerId: String): Boolean {
-        return playerOneId == playerId || playerTwoId == playerId
-    }
-
-    fun getPlayerRole(playerId: String): GameRole {
-        return when (playerId) {
-            playerOneId -> GameRole.PLAYER_ONE
-            playerTwoId -> GameRole.PLAYER_TWO
-            else -> GameRole.SPECTATOR
-        }
-    }
-}
-
-val gamesCacheMap: MutableMap<Int, ConnectFourGame> = Collections.synchronizedMap(HashMap())
+    private val gameId: Int,
+    private val boardWidth: Int = 7,
+    private val boardHeight: Int = 6,
+    private var isPlayerOneTurn: Boolean = true,
+    private var gameStatus: GameStatus = GameStatus.WAITING_FOR_PLAYERS,
+    private var playerOneId: String,
+    private var playerTwoId: String,
+    private val gameTiles: Array<PieceType>,
+    private var playerOneRematch: Boolean = false,
+    private var playerTwoRematch: Boolean = false,
+)
 
 object Games : Table() {
     val id = integer("id").autoIncrement()
     val playerOneId = varchar("playerOneId", 64)
     val playerTwoId = varchar("playerTwoId", 64)
-
-//    val gameState = enumeration<GameState>("gameState")
+    val boardWidth = integer("boardWith")
+    val boardHeight = integer("boardHeight")
+    val isPlayerOneTurn = bool("isPlayerOneTurn")
+    val gameStatus = enumeration<GameStatus>("gameStatus")
+    val playerOneRematch = bool("playerOneRematch")
+    val playerTwoRematch = bool("playerTwoRematch")
 }
