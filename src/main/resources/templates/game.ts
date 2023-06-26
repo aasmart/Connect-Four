@@ -211,21 +211,33 @@ function placePiece(index: number) {
 
 function handleRematchButton(state: GameState) {
     const replayButton = document.getElementById("play-again");
-    if(state.playerOneRematch && player.playerRole == "PLAYER_ONE" ||
-        state.playerTwoRematch && player.playerRole == "PLAYER_TWO"
+    if(
+        (state.playerOneRematch && player.playerRole == "PLAYER_ONE") ||
+        (state.playerTwoRematch && player.playerRole == "PLAYER_TWO")
     ) {
         replayButton.innerText = "Cancel Rematch Request";
-        replayButton.toggleAttribute("disabled", false);
+        replayButton.toggleAttribute(
+            "disabled",
+            !state.playerOneConnected || !state.playerTwoConnected
+        );
         replayButton.setAttribute("data-action", "destructive");
     } else if(state.playerOneRematch || state.playerTwoRematch) {
         replayButton.innerText = "Accept Rematch Request";
-        replayButton.toggleAttribute("disabled", false);
+        replayButton.toggleAttribute(
+            "disabled",
+        !state.playerOneConnected || !state.playerTwoConnected
+        );
         replayButton.setAttribute("data-action", "normal");
     } else {
         replayButton.innerText = "Request Rematch";
         replayButton.toggleAttribute(
             "disabled",
-            state.gameStatus == GameStatus.ACTIVE || state.gameStatus == GameStatus.WAITING_FOR_PLAYERS
+            (
+                state.gameStatus == GameStatus.ACTIVE ||
+                state.gameStatus == GameStatus.WAITING_FOR_PLAYERS ||
+                !state.playerOneConnected ||
+                !state.playerTwoConnected
+            )
         );
         replayButton.setAttribute("data-action", "normal");
     }
