@@ -9,6 +9,7 @@ import io.ktor.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.*
+import kotlin.collections.LinkedHashSet
 import kotlin.math.floor
 
 class ConnectFourGame(
@@ -42,11 +43,11 @@ class ConnectFourGame(
         )
     }
 
-    fun isFull(): Boolean {
+    fun hasBothPlayers(): Boolean {
         return playerTwoId.isNotEmpty() && playerOneId.isNotEmpty()
     }
 
-    fun hasPlayer(playerId: String): Boolean {
+    fun hasPlayerWithId(playerId: String): Boolean {
         return playerOneId == playerId || playerTwoId == playerId
     }
 
@@ -56,6 +57,16 @@ class ConnectFourGame(
             playerTwoId -> GameRole.PLAYER_TWO
             else -> GameRole.SPECTATOR
         }
+    }
+
+    private fun hasConnectPlayerWithId(playerId: String): Boolean {
+        val gameConnections = gamePlayerConnections.getOrDefault(id, LinkedHashSet())
+        return gameConnections.any { it.playerId == playerId }
+    }
+
+    private fun areBothPlayersConnected(): Boolean {
+        return hasConnectPlayerWithId(playerOneId) &&
+                hasConnectPlayerWithId(playerTwoId)
     }
 
     suspend fun broadcastState() {
@@ -82,7 +93,7 @@ class ConnectFourGame(
             .getOrPut(id) { Collections.synchronizedSet(LinkedHashSet()) } += connection
 
         if(gameStatus == GameStatus.WAITING_FOR_PLAYERS || gameStatus == GameStatus.PLAYER_DISCONNECTED)
-            gameStatus = if (hasEnoughPlayers()) GameStatus.ACTIVE else GameStatus.WAITING_FOR_PLAYERS
+            gameStatus = if (areBothPlayersConnected()) GameStatus.ACTIVE else GameStatus.WAITING_FOR_PLAYERS
 
         broadcastState()
     }
@@ -93,28 +104,13 @@ class ConnectFourGame(
         }
 
         if(gameStatus == GameStatus.ACTIVE)
-            gameStatus = if (hasEnoughPlayers()) GameStatus.ACTIVE else GameStatus.PLAYER_DISCONNECTED
-
-        println(gameStatus == GameStatus.ACTIVE)
+            gameStatus = if (areBothPlayersConnected()) GameStatus.ACTIVE else GameStatus.PLAYER_DISCONNECTED
 
         broadcastState()
     }
 
     fun getConnections(): Set<PlayerConnection> =
         gamePlayerConnections.getOrDefault(id, LinkedHashSet()).toSet()
-
-    private fun hasEnoughPlayers(): Boolean {
-        if (gameStatus != GameStatus.ACTIVE &&
-            gameStatus != GameStatus.WAITING_FOR_PLAYERS && gameStatus != GameStatus.PLAYER_DISCONNECTED
-        )
-            return true
-
-        val gameConnections = gamePlayerConnections.getOrDefault(id, LinkedHashSet())
-
-        return isFull() &&
-                gameConnections.any { it.playerId == playerOneId } &&
-                gameConnections.any { it.playerId == playerTwoId }
-    }
 
     private fun canPlaceOnTile(index: Int): Boolean {
         return index in 0 until (gameTiles.size) &&
@@ -181,6 +177,8 @@ class ConnectFourGame(
     suspend fun forfeit(playerId: String): Boolean {
         if(gameStatus != GameStatus.ACTIVE)
             return false
+        if(!areBothPlayersConnected())
+            return false
 
         gameStatus = if(playerOneId == playerId) GameStatus.PLAYER_ONE_FORFEIT
         else if(playerTwoId == playerId) GameStatus.PLAYER_TWO_FORFEIT
@@ -212,7 +210,9 @@ class ConnectFourGame(
         isPlayerOneTurn = isPlayerOneTurn,
         playerOneRematch = playerOneRematch,
         playerTwoRematch = playerTwoRematch,
-        joinCode = JoinCodes.codeMap.filterValues { it == id }.keys.first()
+        joinCode = JoinCodes.codeMap.filterValues { it == id }.keys.first(),
+        playerOneConnected = hasConnectPlayerWithId(playerOneId),
+        playerTwoConnected = hasConnectPlayerWithId(playerTwoId),
     )
 
     fun toGame(): Game = Game(
