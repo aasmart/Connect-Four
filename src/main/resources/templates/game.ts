@@ -250,12 +250,41 @@ function exitGame() {
         return;
     }
 
-    fetch(`${API_ROUTE_URI}/${gameId}/forfeit`, {
-        method: "POST"
-    }).then(res => {
-        if(!res.ok)
-            throw new Error();
-    })
+    const modal: HTMLDialogElement = document.getElementById("popup") as HTMLDialogElement;
+
+    const modalContent = modal.getElementsByTagName("p")[0];
+    const modalButtons = document.getElementById("popup-buttons");
+
+    while (modalButtons.firstChild)
+        modalButtons.removeChild(modalButtons.lastChild);
+
+    modalContent.innerText = "Are you sure you want to forfeit the game?"
+
+    const confirmButton = document.createElement("button");
+    confirmButton.onclick = exitGame;
+    confirmButton.classList.add("basic-button");
+    confirmButton.setAttribute("data-action", "destructive");
+    confirmButton.innerText = "Confirm";
+    confirmButton.addEventListener("click", () => {
+        fetch(`${API_ROUTE_URI}/${gameId}/forfeit`, {
+            method: "POST"
+        }).then(res => {
+            if(!res.ok)
+                throw new Error();
+        })
+    });
+
+    const cancelButton = document.createElement("button");
+    cancelButton.onclick = exitGame;
+    cancelButton.classList.add("basic-button");
+    cancelButton.setAttribute("data-action", "normal");
+    cancelButton.innerText = "Cancel";
+    cancelButton.addEventListener("click", () => modal.close())
+
+    modalButtons.append(confirmButton);
+    modalButtons.append(cancelButton)
+
+    modal.showModal();
 }
 
 enum PieceType {
