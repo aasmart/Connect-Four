@@ -1,7 +1,9 @@
 package dev.aasmart.dao.games
 
 import dev.aasmart.game.ConnectFourGame
+import dev.aasmart.models.Game
 import dev.aasmart.models.GameStatus
+import dev.aasmart.models.PieceType
 
 interface GamesDAOFacade {
     suspend fun create(
@@ -9,18 +11,19 @@ interface GamesDAOFacade {
         playerTwoId: String,
         boardWidth: Int = 7,
         boardHeight: Int = 6
-    ): ConnectFourGame?
+    ): Game?
     suspend fun edit(
         gameId: Int,
-        playerOneId: String,
-        playerTwoId: String,
-        isPlayerOneTurn: Boolean,
-        gameStatus: GameStatus,
-        playerOneRematch: Boolean,
-        playerTwoRematch: Boolean
+        playerOneId: String? = null,
+        playerTwoId: String? = null,
+        isPlayerOneTurn: Boolean? = null,
+        gameStatus: GameStatus? = null,
+        playerOneRematch: Boolean? = null,
+        playerTwoRematch: Boolean? = null,
+        gameTiles: Array<PieceType>? = null
     ): Boolean
-    suspend fun get(gameId: Int): ConnectFourGame?
-    suspend fun all(): List<ConnectFourGame>
-    suspend fun delete(gameId: Int): ConnectFourGame?
+    suspend fun get(gameId: Int): Game?
+    suspend fun all(): List<Game>
+    suspend fun delete(gameId: Int): Game?
     suspend fun deleteGames(): Boolean
 }

@@ -1,5 +1,6 @@
 package dev.aasmart.routing.games
 
+import dev.aasmart.GamesFacade
 import dev.aasmart.dao.games.GamesDAOFacade
 import dev.aasmart.models.JoinCodes
 import dev.aasmart.models.PlayerSession
@@ -9,7 +10,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Route.newGame(gamesFacade: GamesDAOFacade) {
+fun Route.newGame() {
     val maxJoinCodeReattempts = 5;
     val joinCodeLength = 6;
 
@@ -20,7 +21,7 @@ fun Route.newGame(gamesFacade: GamesDAOFacade) {
             return@post
         }
 
-        val game = gamesFacade.create(
+        val game = GamesFacade.facade.create(
             playerOneId = session.userId,
             playerTwoId = ""
         )

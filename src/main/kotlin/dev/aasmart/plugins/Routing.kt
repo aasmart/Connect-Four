@@ -1,6 +1,8 @@
 package dev.aasmart.plugins
 
+import dev.aasmart.GamesFacade
 import dev.aasmart.dao.games.GamesDAOFacade
+import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.routing.games.game
 import dev.aasmart.routing.login.login
 import io.ktor.http.*
@@ -11,7 +13,7 @@ import io.ktor.server.http.content.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Application.configureRouting(gamesFacade: GamesDAOFacade) {
+fun Application.configureRouting() {
     routing {
         staticResources("/static", "assets") {
 
@@ -19,7 +21,7 @@ fun Application.configureRouting(gamesFacade: GamesDAOFacade) {
 
         route("/api") {
             login()
-            game(gamesFacade)
+            game()
         }
 
         get {
@@ -35,7 +37,10 @@ fun Application.configureRouting(gamesFacade: GamesDAOFacade) {
                     return@get
                 }
 
-                call.respond(FreeMarkerContent("index.ftl", mapOf("state" to gamesFacade.get(id)?.collectAsState())))
+                call.respond(FreeMarkerContent(
+                    "index.ftl",
+                    mapOf("state" to GamesFacade.facade.get(id)?.let { ConnectFourGame(it) }?.collectAsState()))
+                )
             }
         }
     }

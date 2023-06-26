@@ -1,9 +1,7 @@
 package dev.aasmart.models
 
-import dev.aasmart.game.ConnectFourGame
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
-import java.util.Collections
 
 @Serializable
 enum class PieceType(val int: Int) {
@@ -32,20 +30,18 @@ enum class GameRole {
     SPECTATOR
 }
 
-
-@Serializable
 data class Game(
-    private val gameId: Int,
-    private val boardWidth: Int = 7,
-    private val boardHeight: Int = 6,
-    private var isPlayerOneTurn: Boolean = true,
-    private var gameStatus: GameStatus = GameStatus.WAITING_FOR_PLAYERS,
-    private var playerOneId: String,
-    private var playerTwoId: String,
-    private val gameTiles: Array<PieceType>,
-    private var playerOneRematch: Boolean = false,
-    private var playerTwoRematch: Boolean = false,
-)
+    val id: Int,
+    val boardWidth: Int,
+    val boardHeight: Int,
+    var isPlayerOneTurn: Boolean,
+    var gameStatus: GameStatus,
+    var playerOneId: String,
+    var playerTwoId: String,
+    var playerOneRematch: Boolean,
+    var playerTwoRematch: Boolean,
+    val gameTilesString: String
+) : java.io.Serializable
 
 object Games : Table() {
     val id = integer("id").autoIncrement()
@@ -57,4 +53,5 @@ object Games : Table() {
     val gameStatus = enumeration<GameStatus>("gameStatus")
     val playerOneRematch = bool("playerOneRematch")
     val playerTwoRematch = bool("playerTwoRematch")
+    val gamePieces = text("gamePieces")
 }

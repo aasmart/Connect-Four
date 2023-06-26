@@ -1,6 +1,8 @@
 package dev.aasmart.routing.games
 
+import dev.aasmart.GamesFacade
 import dev.aasmart.dao.games.GamesDAOFacade
+import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.models.JoinCodes
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*
@@ -9,7 +11,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Route.joinGame(gamesFacade: GamesDAOFacade) {
+fun Route.joinGame() {
     get("/join") {
         val joinCode = call.request.queryParameters["join-code"]
 
@@ -23,21 +25,17 @@ fun Route.joinGame(gamesFacade: GamesDAOFacade) {
         }
 
         val gameId = JoinCodes.codeMap[joinCode]
-        val game = gameId?.let { id -> gamesFacade.get(id) }
+        val game = gameId?.let { id -> GamesFacade.facade.get(id) }?.let { ConnectFourGame(it) }
         if(game == null) {
             call.respond(HttpStatusCode.NotFound, "Game does not exist")
             return@get
         }
 
         if(!game.hasPlayer(playerId))
-            gamesFacade.edit(
+            GamesFacade.facade.edit(
                 gameId = game.id,
                 playerOneId = game.playerOneId.ifEmpty { playerId },
                 playerTwoId = game.playerTwoId.ifEmpty { playerId },
-                isPlayerOneTurn = game.getIsPlayerOneTurn(),
-                gameStatus = game.getStatus(),
-                playerOneRematch = game.getPlayerOneRematch(),
-                playerTwoRematch = game.getPlayerTwoRematch()
             )
 
         call.sessions.set(PlayerSession(

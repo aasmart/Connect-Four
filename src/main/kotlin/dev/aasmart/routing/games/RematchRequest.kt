@@ -1,6 +1,8 @@
 package dev.aasmart.routing.games
 
+import dev.aasmart.GamesFacade
 import dev.aasmart.dao.games.GamesDAOFacade
+import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -9,7 +11,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Route.rematchRequest(gamesFacade: GamesDAOFacade) {
+fun Route.rematchRequest() {
     authenticate("auth-session") {
         post("/rematch-request/{action}") {
             var action = call.parameters["action"]?.lowercase()
@@ -28,7 +30,7 @@ fun Route.rematchRequest(gamesFacade: GamesDAOFacade) {
                 return@post
             }
 
-            val game = gamesFacade.get(gameId)
+            val game = GamesFacade.facade.get(gameId)?.let { ConnectFourGame(it) }
             if(game == null) {
                 call.respond(HttpStatusCode.NotFound, "Game does not exist")
                 return@post

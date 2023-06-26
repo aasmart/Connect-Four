@@ -4,17 +4,17 @@ import dev.aasmart.dao.games.GamesDAOFacade
 import dev.aasmart.dao.games.GamesDAOFacadeCacheImpl
 import io.ktor.server.routing.*
 
-fun Route.game(gamesFacade: GamesDAOFacade) {
+fun Route.game() {
     route("/game") {
-        newGame(gamesFacade)
-        joinGame(gamesFacade)
+        newGame()
+        joinGame()
 
         route("/{game-id}") {
-            getPlayerData(gamesFacade)
-            rematchRequest(gamesFacade)
-            playPiece(gamesFacade)
-            gameSocket(gamesFacade)
-            forfeit(gamesFacade)
+            getPlayerData()
+            rematchRequest()
+            playPiece()
+            gameSocket()
+            forfeit()
         }
     }
 }
