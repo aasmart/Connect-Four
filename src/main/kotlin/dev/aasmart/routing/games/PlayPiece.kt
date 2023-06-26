@@ -1,8 +1,7 @@
 package dev.aasmart.routing.games
 
-import dev.aasmart.dao.games.gamesFacade
+import dev.aasmart.dao.games.GamesDAOFacade
 import dev.aasmart.models.PlayerSession
-import dev.aasmart.models.gamesCacheMap
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -10,7 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Route.playPiece() {
+fun Route.playPiece(gamesFacade: GamesDAOFacade) {
     authenticate("auth-session") {
         post("/play-piece/{index}") {
             val index = call.parameters["index"]?.toInt()
@@ -24,9 +23,8 @@ fun Route.playPiece() {
                 return@post
             }
 
-            val cachedGame = gamesCacheMap[gameId]
-            val game = gamesFacade.getGame(gameId)
-            if(cachedGame == null || game == null) {
+            val game = gamesFacade.get(gameId)
+            if(game == null) {
                 call.respond(HttpStatusCode.Conflict, "Game does not exist")
                 return@post
             }
@@ -40,14 +38,14 @@ fun Route.playPiece() {
             val playerId = playerSession.userId
 
             // Check if it's not the player's turn
-            if(!cachedGame.getIsPlayerOneTurn() && playerId == game.playerOneId ||
-                cachedGame.getIsPlayerOneTurn() && playerId == game.playerTwoId
+            if(!game.getIsPlayerOneTurn() && playerId == game.playerOneId ||
+                game.getIsPlayerOneTurn() && playerId == game.playerTwoId
             ) {
                 call.respond(HttpStatusCode.Forbidden, "You cannot play a piece")
                 return@post
             }
 
-            if(cachedGame.playRound(index))
+            if(game.playRound(index))
                 call.respond(HttpStatusCode.OK, "Played piece at index $index")
             else
                 call.respond(HttpStatusCode.BadRequest, "Can not play the piece at $index")

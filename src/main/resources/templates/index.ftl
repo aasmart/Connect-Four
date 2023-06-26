@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="state" type="dev.aasmart.game.GameState" -->
+<#-- @ftlvariable name="state" type="dev.aasmart.models.games.GameState" -->
 <#import "_layout.ftl" as layout />
 
 <@layout.main>

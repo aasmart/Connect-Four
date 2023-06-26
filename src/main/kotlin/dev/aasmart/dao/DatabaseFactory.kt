@@ -1,6 +1,7 @@
 package dev.aasmart.dao
 
 import dev.aasmart.models.Games
+import dev.aasmart.models.games.Tiles
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -14,7 +15,10 @@ object DatabaseFactory {
         val database = Database.connect(jdbcURL, driverClassName)
 
         transaction (database){
-            SchemaUtils.createMissingTablesAndColumns(Games)
+            SchemaUtils.createMissingTablesAndColumns(
+                Games,
+                Tiles
+            )
         }
     }
 

@@ -1,20 +1,17 @@
 package dev.aasmart.plugins
 
-import dev.aasmart.game.Tile
-import dev.aasmart.models.PieceType
-import dev.aasmart.models.gamesCacheMap
+import dev.aasmart.dao.games.GamesDAOFacade
 import dev.aasmart.routing.games.game
 import dev.aasmart.routing.login.login
 import io.ktor.http.*
-import io.ktor.server.routing.*
-import io.ktor.server.response.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.freemarker.*
 import io.ktor.server.http.content.*
-import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
-fun Application.configureRouting() {
+fun Application.configureRouting(gamesFacade: GamesDAOFacade) {
     routing {
         staticResources("/static", "assets") {
 
@@ -22,7 +19,7 @@ fun Application.configureRouting() {
 
         route("/api") {
             login()
-            game()
+            game(gamesFacade)
         }
 
         get {
@@ -38,7 +35,7 @@ fun Application.configureRouting() {
                     return@get
                 }
 
-                call.respond(FreeMarkerContent("index.ftl", mapOf("state" to gamesCacheMap[id]?.collectAsState())))
+                call.respond(FreeMarkerContent("index.ftl", mapOf("state" to gamesFacade.get(id)?.collectAsState())))
             }
         }
     }
