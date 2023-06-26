@@ -24,6 +24,5 @@ interface GamesDAOFacade {
     ): Boolean
     suspend fun get(gameId: Int): Game?
     suspend fun all(): List<Game>
-    suspend fun delete(gameId: Int): Game?
-    suspend fun deleteGames(): Boolean
+    suspend fun delete(gameId: Int): Boolean
 }

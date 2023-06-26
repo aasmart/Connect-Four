@@ -9,6 +9,7 @@ import dev.aasmart.models.Games
 import dev.aasmart.models.PieceType
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
     override fun resolveResultRow(row: ResultRow) = Game(
@@ -79,11 +80,7 @@ class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
             .map(::resolveResultRow)
     }
 
-    override suspend fun delete(gameId: Int): Game? {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun deleteGames(): Boolean = dbQuery {
-        Games.deleteAll() > 0
+    override suspend fun delete(gameId: Int): Boolean = dbQuery {
+        Games.deleteWhere { Games.id eq gameId } > 0
     }
 }

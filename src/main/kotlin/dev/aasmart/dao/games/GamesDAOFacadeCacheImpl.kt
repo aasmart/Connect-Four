@@ -87,12 +87,8 @@ class GamesDAOFacadeCacheImpl(
     override suspend fun all(): List<Game> =
         delegate.all()
 
-    override suspend fun delete(gameId: Int): Game? {
+    override suspend fun delete(gameId: Int): Boolean {
         gamesCache.remove(gameId)
         return delegate.delete(gameId)
-    }
-
-    override suspend fun deleteGames(): Boolean {
-        TODO("Not yet implemented")
     }
 }
