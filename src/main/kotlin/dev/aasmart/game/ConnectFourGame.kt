@@ -9,6 +9,7 @@ import io.ktor.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.*
+import kotlin.collections.LinkedHashSet
 import kotlin.math.floor
 
 class ConnectFourGame(
@@ -58,12 +59,14 @@ class ConnectFourGame(
         }
     }
 
-    private fun hasEnoughConnectedPlayers(): Boolean {
+    private fun hasConnectPlayerWithId(playerId: String): Boolean {
         val gameConnections = gamePlayerConnections.getOrDefault(id, LinkedHashSet())
+        return gameConnections.any { it.playerId == playerId }
+    }
 
-        return hasBothPlayers() &&
-                gameConnections.any { it.playerId == playerOneId } &&
-                gameConnections.any { it.playerId == playerTwoId }
+    private fun areBothPlayersConnected(): Boolean {
+        return hasConnectPlayerWithId(playerOneId) &&
+                hasConnectPlayerWithId(playerTwoId)
     }
 
     suspend fun broadcastState() {
@@ -90,7 +93,7 @@ class ConnectFourGame(
             .getOrPut(id) { Collections.synchronizedSet(LinkedHashSet()) } += connection
 
         if(gameStatus == GameStatus.WAITING_FOR_PLAYERS || gameStatus == GameStatus.PLAYER_DISCONNECTED)
-            gameStatus = if (hasEnoughConnectedPlayers()) GameStatus.ACTIVE else GameStatus.WAITING_FOR_PLAYERS
+            gameStatus = if (areBothPlayersConnected()) GameStatus.ACTIVE else GameStatus.WAITING_FOR_PLAYERS
 
         broadcastState()
     }
@@ -101,7 +104,7 @@ class ConnectFourGame(
         }
 
         if(gameStatus == GameStatus.ACTIVE)
-            gameStatus = if (hasEnoughConnectedPlayers()) GameStatus.ACTIVE else GameStatus.PLAYER_DISCONNECTED
+            gameStatus = if (areBothPlayersConnected()) GameStatus.ACTIVE else GameStatus.PLAYER_DISCONNECTED
 
         broadcastState()
     }
@@ -174,6 +177,8 @@ class ConnectFourGame(
     suspend fun forfeit(playerId: String): Boolean {
         if(gameStatus != GameStatus.ACTIVE)
             return false
+        if(!areBothPlayersConnected())
+            return false
 
         gameStatus = if(playerOneId == playerId) GameStatus.PLAYER_ONE_FORFEIT
         else if(playerTwoId == playerId) GameStatus.PLAYER_TWO_FORFEIT
@@ -205,7 +210,9 @@ class ConnectFourGame(
         isPlayerOneTurn = isPlayerOneTurn,
         playerOneRematch = playerOneRematch,
         playerTwoRematch = playerTwoRematch,
-        joinCode = JoinCodes.codeMap.filterValues { it == id }.keys.first()
+        joinCode = JoinCodes.codeMap.filterValues { it == id }.keys.first(),
+        playerOneConnected = hasConnectPlayerWithId(playerOneId),
+        playerTwoConnected = hasConnectPlayerWithId(playerTwoId),
     )
 
     fun toGame(): Game = Game(

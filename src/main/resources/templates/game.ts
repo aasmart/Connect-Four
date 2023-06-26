@@ -317,7 +317,9 @@ interface GameState {
     gameStatus: GameStatus,
     playerOneRematch: boolean,
     playerTwoRematch: boolean,
-    joinCode: string
+    joinCode: string,
+    playerOneConnected: boolean,
+    playerTwoConnected: boolean
 }
 
 interface PlayerData {
