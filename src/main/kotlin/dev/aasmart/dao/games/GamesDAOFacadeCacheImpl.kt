@@ -1,7 +1,9 @@
 package dev.aasmart.dao.games
 
 import dev.aasmart.game.ConnectFourGame
+import dev.aasmart.models.Game
 import dev.aasmart.models.GameStatus
+import dev.aasmart.models.PieceType
 import org.ehcache.config.builders.CacheConfigurationBuilder
 import org.ehcache.config.builders.CacheManagerBuilder
 import org.ehcache.config.builders.ResourcePoolsBuilder
@@ -20,7 +22,7 @@ class GamesDAOFacadeCacheImpl(
             "gamesCache",
             CacheConfigurationBuilder.newCacheConfigurationBuilder(
                 Int::class.javaObjectType,
-                ConnectFourGame::class.java,
+                Game::class.java,
                 ResourcePoolsBuilder.newResourcePoolsBuilder()
                     .heap(1000, EntryUnit.ENTRIES)
                     .offheap(10, MemoryUnit.MB)
@@ -29,37 +31,39 @@ class GamesDAOFacadeCacheImpl(
         )
         .build(true)
 
-    private val gamesCache = cacheManager.getCache("gamesCache", Int::class.javaObjectType, ConnectFourGame::class.java)
+    private val gamesCache = cacheManager.getCache("gamesCache", Int::class.javaObjectType, Game::class.java)
 
     override suspend fun create(
         playerOneId: String,
         playerTwoId: String,
         boardWidth: Int,
         boardHeight: Int
-    ): ConnectFourGame? =
+    ): Game? =
         delegate.create(playerOneId, playerTwoId, boardWidth, boardHeight)
             ?.also { game -> gamesCache.put(game.id, game) }
 
     override suspend fun edit(
         gameId: Int,
-        playerOneId: String,
-        playerTwoId: String,
-        isPlayerOneTurn: Boolean,
-        gameStatus: GameStatus,
-        playerOneRematch: Boolean,
-        playerTwoRematch: Boolean
+        playerOneId: String?,
+        playerTwoId: String?,
+        isPlayerOneTurn: Boolean?,
+        gameStatus: GameStatus?,
+        playerOneRematch: Boolean?,
+        playerTwoRematch: Boolean?,
+        gameTiles: Array<PieceType>?
     ): Boolean {
         get(gameId)?.let {
-            gamesCache.put(gameId, ConnectFourGame(
+            gamesCache.put(gameId, Game(
                 gameId,
-                playerOneId = playerOneId,
-                playerTwoId = playerTwoId,
-                isPlayerOneTurn = isPlayerOneTurn,
-                gameStatus = gameStatus,
-                playerOneRematch = playerOneRematch,
-                playerTwoRematch = playerTwoRematch,
+                playerOneId = playerOneId ?: it.playerOneId,
+                playerTwoId = playerTwoId ?: it.playerTwoId,
+                isPlayerOneTurn = isPlayerOneTurn ?: it.isPlayerOneTurn,
+                gameStatus = gameStatus ?: it.gameStatus,
+                playerOneRematch = playerOneRematch ?: it.playerOneRematch,
+                playerTwoRematch = playerTwoRematch ?: it.playerTwoRematch,
                 boardHeight = it.boardHeight,
-                boardWidth = it.boardWidth
+                boardWidth = it.boardWidth,
+                gameTilesString = gameTiles?.joinToString("/") ?: it.gameTilesString
             ))
         }
 
@@ -71,23 +75,20 @@ class GamesDAOFacadeCacheImpl(
             gameStatus,
             playerOneRematch,
             playerTwoRematch,
+            gameTiles
         )
     }
 
-    override suspend fun get(gameId: Int): ConnectFourGame? =
+    override suspend fun get(gameId: Int): Game? =
         gamesCache[gameId]
             ?: delegate.get(gameId)
                 .also { game -> gamesCache.put(gameId, game) }
 
-    override suspend fun all(): List<ConnectFourGame> =
+    override suspend fun all(): List<Game> =
         delegate.all()
 
-    override suspend fun delete(gameId: Int): ConnectFourGame? {
+    override suspend fun delete(gameId: Int): Boolean {
         gamesCache.remove(gameId)
         return delegate.delete(gameId)
-    }
-
-    override suspend fun deleteGames(): Boolean {
-        TODO("Not yet implemented")
     }
 }

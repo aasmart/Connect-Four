@@ -1,31 +1,40 @@
 package dev.aasmart.game
 
+import dev.aasmart.dao.games.GamesFacade
 import dev.aasmart.models.*
 import dev.aasmart.models.games.GameState
 import dev.aasmart.models.games.GameTile
 import dev.aasmart.utils.*
 import io.ktor.websocket.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.Collections
+import java.util.*
 import kotlin.math.floor
 
-@Serializable
 class ConnectFourGame(
     val id: Int,
-    val boardWidth: Int,
-    val boardHeight: Int,
+    private val boardWidth: Int,
+    private val boardHeight: Int,
     private var isPlayerOneTurn: Boolean,
     private var gameStatus: GameStatus,
     var playerOneId: String,
     var playerTwoId: String,
     private var playerOneRematch: Boolean,
-    private var playerTwoRematch: Boolean
+    private var playerTwoRematch: Boolean,
+    private val gameTiles: Array<PieceType>
 ) {
-    @Transient
-    private val gameTiles = MutableList(boardWidth * boardHeight) { PieceType.EMPTY }.toTypedArray()
+    constructor(game: Game) : this(
+        game.id,
+        game.boardWidth,
+        game.boardHeight,
+        game.isPlayerOneTurn,
+        game.gameStatus,
+        game.playerOneId,
+        game.playerTwoId,
+        game.playerOneRematch,
+        game.playerTwoRematch,
+        game.gameTilesString.split("/").map { PieceType.valueOf(it) }.toTypedArray()
+    )
 
     companion object {
         private val gamePlayerConnections: MutableMap<Int, MutableSet<PlayerConnection>> = Collections.synchronizedMap(
@@ -50,8 +59,21 @@ class ConnectFourGame(
     }
 
     suspend fun broadcastState() {
+        GamesFacade.facade.edit(
+            id,
+            isPlayerOneTurn = isPlayerOneTurn,
+            gameStatus = gameStatus,
+            playerOneId = playerOneId,
+            playerTwoId = playerTwoId,
+            playerOneRematch = playerOneRematch,
+            playerTwoRematch = playerTwoRematch,
+            gameTiles = gameTiles
+        )
+
+        val state = collectAsState()
+
         gamePlayerConnections[id]?.forEach {
-            it.session.send(Json.encodeToString(collectAsState()))
+            it.session.send(Json.encodeToString(state))
         }
     }
 
@@ -73,6 +95,8 @@ class ConnectFourGame(
         if(gameStatus == GameStatus.ACTIVE)
             gameStatus = if (hasEnoughPlayers()) GameStatus.ACTIVE else GameStatus.PLAYER_DISCONNECTED
 
+        println(gameStatus == GameStatus.ACTIVE)
+
         broadcastState()
     }
 
@@ -85,7 +109,11 @@ class ConnectFourGame(
         )
             return true
 
-        return isFull()
+        val gameConnections = gamePlayerConnections.getOrDefault(id, LinkedHashSet())
+
+        return isFull() &&
+                gameConnections.any { it.playerId == playerOneId } &&
+                gameConnections.any { it.playerId == playerTwoId }
     }
 
     private fun canPlaceOnTile(index: Int): Boolean {
@@ -176,21 +204,7 @@ class ConnectFourGame(
         return true
     }
 
-    fun getIsPlayerOneTurn(): Boolean {
-        return isPlayerOneTurn
-    }
-
-    fun getStatus(): GameStatus {
-        return gameStatus
-    }
-
-    fun getPlayerOneRematch(): Boolean {
-        return playerOneRematch
-    }
-
-    fun getPlayerTwoRematch(): Boolean {
-        return playerTwoRematch
-    }
+    fun getIsPlayerOneTurn(): Boolean = isPlayerOneTurn
 
     fun collectAsState(): GameState = GameState(
         gameTiles = gameTiles.mapIndexed { index, piece -> GameTile(piece.int, canPlaceOnTile(index)) }.toTypedArray(),
@@ -199,5 +213,18 @@ class ConnectFourGame(
         playerOneRematch = playerOneRematch,
         playerTwoRematch = playerTwoRematch,
         joinCode = JoinCodes.codeMap.filterValues { it == id }.keys.first()
+    )
+
+    fun toGame(): Game = Game(
+        id,
+        boardWidth,
+        boardHeight,
+        isPlayerOneTurn,
+        gameStatus,
+        playerOneId,
+        playerTwoId,
+        playerOneRematch,
+        playerTwoRematch,
+        gameTiles.joinToString("/")
     )
 }

@@ -1,6 +1,7 @@
 package dev.aasmart.routing.games
 
-import dev.aasmart.dao.games.GamesDAOFacade
+import dev.aasmart.dao.games.GamesFacade
+import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.models.PlayerConnection
 import dev.aasmart.models.PlayerSession
 import io.ktor.server.auth.*
@@ -9,7 +10,7 @@ import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 
-fun Route.gameSocket(gamesFacade: GamesDAOFacade) {
+fun Route.gameSocket() {
     authenticate("auth-session") {
         webSocket {
             val session = call.sessions.get<PlayerSession>()
@@ -20,12 +21,6 @@ fun Route.gameSocket(gamesFacade: GamesDAOFacade) {
                 return@webSocket
             }
 
-            val game = gamesFacade.get(gameId)
-            if (game == null) {
-                close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "No such game"))
-                return@webSocket
-            }
-
             if (session == null) {
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
                 return@webSocket
@@ -33,22 +28,28 @@ fun Route.gameSocket(gamesFacade: GamesDAOFacade) {
 
             // Connection stuff
             val connection = PlayerConnection(this, session.userId)
-            game.addConnection(connection)
+            GamesFacade.facade
+                .get(gameId)
+                ?.let { ConnectFourGame(it) }
+                ?.addConnection(connection) ?: run {
+                    close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "No such game"))
+                    return@webSocket
+                }
 
             try {
-                connection.session.send("Connected to game ${game.id}")
+                connection.session.send("Connected to game $gameId")
 
                 for (frame in incoming) {
                     frame as? Frame.Text ?: continue
-                    val text: String = frame.readText()
-
-                    game.broadcastState()
                 }
             } catch (e: Exception) {
                 println(e.localizedMessage)
             } finally {
                 println("Session ${connection.session} disconnected")
-                game.removeConnection(connection)
+                GamesFacade.facade
+                    .get(gameId)
+                    ?.let { ConnectFourGame(it) }
+                    ?.removeConnection(connection)
             }
         }
     }
