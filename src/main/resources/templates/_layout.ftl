@@ -18,7 +18,7 @@
                     <span style="--animation-delay: 500ms; --color: red"></span>
                 </div>
                 <p></p>
-                <div id="popup-buttons" class="flex row centered"></div>
+                <div id="popup-buttons" class="flex row centered" style="--gap: 1rem"></div>
             </dialog>
 
             <main>

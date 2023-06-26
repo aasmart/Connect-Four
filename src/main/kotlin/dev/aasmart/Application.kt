@@ -20,8 +20,7 @@ fun Application.module() {
         GamesDAOFacadeImpl(),
         File(environment.config.property("storage.ehcacheFilePath").getString())
     ).apply {
-        runBlocking {
-        }
+        runBlocking { }
     }
 
     configureSecurity()
