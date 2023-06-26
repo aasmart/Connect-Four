@@ -84,3 +84,7 @@ class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
         Games.deleteWhere { Games.id eq gameId } > 0
     }
 }
+
+object GamesFacade {
+    lateinit var facade: GamesDAOFacade
+}

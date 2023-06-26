@@ -1,6 +1,6 @@
 package dev.aasmart.game
 
-import dev.aasmart.GamesFacade
+import dev.aasmart.dao.games.GamesFacade
 import dev.aasmart.models.*
 import dev.aasmart.models.games.GameState
 import dev.aasmart.models.games.GameTile
@@ -9,7 +9,6 @@ import io.ktor.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.*
-import kotlin.collections.LinkedHashSet
 import kotlin.math.floor
 
 class ConnectFourGame(
@@ -71,8 +70,10 @@ class ConnectFourGame(
             gameTiles = gameTiles
         )
 
+        val state = collectAsState()
+
         gamePlayerConnections[id]?.forEach {
-            it.session.send(Json.encodeToString(collectAsState()))
+            it.session.send(Json.encodeToString(state))
         }
     }
 

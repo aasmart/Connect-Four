@@ -1,6 +1,6 @@
 package dev.aasmart.plugins
 
-import dev.aasmart.GamesFacade
+import dev.aasmart.dao.games.GamesFacade
 import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*

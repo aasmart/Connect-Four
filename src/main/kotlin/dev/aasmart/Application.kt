@@ -1,20 +1,13 @@
 package dev.aasmart
 
 import dev.aasmart.dao.DatabaseFactory
-import dev.aasmart.dao.games.GamesDAOFacade
 import dev.aasmart.dao.games.GamesDAOFacadeCacheImpl
 import dev.aasmart.dao.games.GamesDAOFacadeImpl
-import dev.aasmart.models.Games
-import io.ktor.server.application.*
+import dev.aasmart.dao.games.GamesFacade
 import dev.aasmart.plugins.*
-import io.ktor.network.tls.certificates.*
+import io.ktor.server.application.*
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.deleteAll
 import java.io.File
-
-object GamesFacade {
-    lateinit var facade: GamesDAOFacade
-}
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)

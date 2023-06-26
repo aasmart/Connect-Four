@@ -1,7 +1,6 @@
 package dev.aasmart.plugins
 
-import dev.aasmart.GamesFacade
-import dev.aasmart.dao.games.GamesDAOFacade
+import dev.aasmart.dao.games.GamesFacade
 import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.routing.games.game
 import dev.aasmart.routing.login.login

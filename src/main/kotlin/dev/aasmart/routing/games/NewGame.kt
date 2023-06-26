@@ -1,7 +1,6 @@
 package dev.aasmart.routing.games
 
-import dev.aasmart.GamesFacade
-import dev.aasmart.dao.games.GamesDAOFacade
+import dev.aasmart.dao.games.GamesFacade
 import dev.aasmart.models.JoinCodes
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*

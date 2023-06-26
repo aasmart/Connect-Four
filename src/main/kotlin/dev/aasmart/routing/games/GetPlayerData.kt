@@ -1,7 +1,6 @@
 package dev.aasmart.routing.games
 
-import dev.aasmart.GamesFacade
-import dev.aasmart.dao.games.GamesDAOFacade
+import dev.aasmart.dao.games.GamesFacade
 import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.models.PlayerData
 import dev.aasmart.models.PlayerSession
