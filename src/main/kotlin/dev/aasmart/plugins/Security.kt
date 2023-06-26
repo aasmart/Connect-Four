@@ -37,7 +37,7 @@ fun Application.configureSecurity() {
 
                 if(game.playerOneId != player.userId &&
                     game.playerTwoId != player.userId &&
-                    game.isFull()
+                    game.hasBothPlayers()
                 )
                     return@validate null
 
