@@ -259,6 +259,7 @@ function exitGame() {
         modalButtons.removeChild(modalButtons.lastChild);
 
     modalContent.innerText = "Are you sure you want to forfeit the game?"
+    modal.toggleAttribute("data-isLoading", false);
 
     const confirmButton = document.createElement("button");
     confirmButton.onclick = exitGame;
