@@ -357,6 +357,10 @@ input {
     flex: 1;
 }
 
+#popup:not([data-is-loading]) > .loading-bar {
+    display: none;
+}
+
 .join-code {
     --popup-offset: -3rem;
 

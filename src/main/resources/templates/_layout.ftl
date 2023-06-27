@@ -11,7 +11,7 @@
         <style> <#include "./styles.css"> </style>
     </head>
         <body>
-            <dialog id="popup" data-isLoading="false">
+            <dialog id="popup" data-is-loading>
                 <div class="loading-bar">
                     <span style="--animation-delay: 0ms; --color: red"></span>
                     <span style="--animation-delay: 250ms; --color: gold"></span>

@@ -1,4 +1,4 @@
-const ip = "127.0.0.1:8080"
+const ip = "192.168.5.77:8080"
 const SOCKET_ROUTE_URI = `ws://${ip}/api/game`
 const API_ROUTE_URI = `http://${ip}/api/game`
 
@@ -105,7 +105,11 @@ function getTitleString(state: GameState) {
     return title
 }
 
-function handleDialogModal(state: GameState) {
+function showDialogModal(
+    modalContentNodes: Node[],
+    buttons: HTMLButtonElement[],
+    displayLoadingBar: boolean
+) {
     const modal: HTMLDialogElement = document.getElementById("popup") as HTMLDialogElement;
 
     const modalContent = modal.getElementsByTagName("p")[0];
@@ -113,57 +117,24 @@ function handleDialogModal(state: GameState) {
 
     while (modalButtons.firstChild)
         modalButtons.removeChild(modalButtons.lastChild);
+    while (modalContent.firstChild)
+        modalContent.removeChild(modalContent.lastChild);
 
-    switch (state.gameStatus) {
-        case GameStatus.WAITING_FOR_PLAYERS:
-            modalContent.innerText = "Waiting for players...\n Join Code: ";
-            modal.toggleAttribute("data-isLoading", true);
+    modal.toggleAttribute("data-is-loading", displayLoadingBar);
+    modalContent.append(...modalContentNodes);
+    modalButtons.append(...buttons);
 
-            const joinCode = document.createElement("button");
-            joinCode.classList.add("join-code");
-            joinCode.innerHTML = state.joinCode;
-            if(window.isSecureContext && navigator.clipboard) {
-                joinCode.setAttribute("title", "Copy code to clipboard");
-                copySvgPromise.then(svg => joinCode.append(svg))
-                joinCode.addEventListener("click", () => {
-                    navigator.clipboard.writeText(state.joinCode).then(() => {
-                        joinCode.setAttribute("copied", "true");
-                        setTimeout(() => {
-                            joinCode.setAttribute("copied", "false");
-                        }, 1500);
-                    }, () => {
-                        console.log("Couldn't copy join code to clipboard");
-                    })
-                })
+    modal.showModal();
+}
 
-                joinCode.setAttribute("data-can-copy", "true");
-            } else
-                joinCode.setAttribute("data-can-copy", "false");
-            modalContent.append(joinCode);
-
-            const exitGameButton = document.createElement("button");
-            exitGameButton.onclick = exitGame;
-            exitGameButton.classList.add("basic-button");
-            exitGameButton.setAttribute("data-action", "destructive");
-            exitGameButton.innerText = "Exit Game";
-
-            document.getElementById("popup-buttons").append(exitGameButton);
-
-            modal.showModal();
-            break;
-        case GameStatus.PLAYER_DISCONNECTED:
-            modal.toggleAttribute("data-isLoading", true);
-            modalContent.innerText = "Player has disconnected; waiting for them to reconnect";
-
-            modal.showModal();
-            break;
-        default:
-            modal.close();
-            break;
-    }
+function closeDialogModal() {
+    const modal: HTMLDialogElement = document.getElementById("popup") as HTMLDialogElement;
+    modal.close()
 }
 
 function handleGameState(tiles: Element[], state: GameState) {
+    closeDialogModal();
+
     tiles.forEach((tile, index) => {
         const tileState = state.gameTiles[index];
         const pieceType = PieceType[tileState.pieceType]
@@ -196,7 +167,52 @@ function handleGameState(tiles: Element[], state: GameState) {
         else
             forfeitButton.innerText = "Exit Game";
 
-        handleDialogModal(state)
+        if(state.gameStatus == GameStatus.WAITING_FOR_PLAYERS) {
+            const joinCode = document.createElement("button");
+            joinCode.classList.add("join-code");
+            joinCode.innerHTML = state.joinCode;
+            if(window.isSecureContext && navigator.clipboard) {
+                joinCode.setAttribute("title", "Copy code to clipboard");
+                copySvgPromise.then(svg => joinCode.append(svg))
+                joinCode.addEventListener("click", () => {
+                    navigator.clipboard.writeText(state.joinCode).then(() => {
+                        joinCode.setAttribute("copied", "true");
+                        setTimeout(() => {
+                            joinCode.setAttribute("copied", "false");
+                        }, 1500);
+                    }, () => {
+                        console.log("Couldn't copy join code to clipboard");
+                    })
+                })
+
+                joinCode.setAttribute("data-can-copy", "true");
+            } else
+                joinCode.setAttribute("data-can-copy", "false");
+
+            const exitGameButton = document.createElement("button");
+            exitGameButton.onclick = exitGame;
+            exitGameButton.classList.add("basic-button");
+            exitGameButton.setAttribute("data-action", "destructive");
+            exitGameButton.innerText = "Exit Game";
+
+            showDialogModal(
+                [
+                    document.createTextNode("Waiting for players...\n Join Code: "),
+                    joinCode
+                ], [
+                    exitGameButton
+                ],
+                true
+            );
+        } else if(state.gameStatus == GameStatus.PLAYER_DISCONNECTED) {
+            showDialogModal(
+                [
+                    document.createTextNode("Player has disconnected; waiting for them to reconnect"),
+                ],
+                [],
+                true
+            );
+        }
     })
 }
 
@@ -267,17 +283,6 @@ function exitGame() {
         return;
     }
 
-    const modal: HTMLDialogElement = document.getElementById("popup") as HTMLDialogElement;
-
-    const modalContent = modal.getElementsByTagName("p")[0];
-    const modalButtons = document.getElementById("popup-buttons");
-
-    while (modalButtons.firstChild)
-        modalButtons.removeChild(modalButtons.lastChild);
-
-    modalContent.innerText = "Are you sure you want to forfeit the game?"
-    modal.toggleAttribute("data-isLoading", false);
-
     const confirmButton = document.createElement("button");
     confirmButton.onclick = exitGame;
     confirmButton.classList.add("basic-button");
@@ -297,12 +302,18 @@ function exitGame() {
     cancelButton.classList.add("basic-button");
     cancelButton.setAttribute("data-action", "normal");
     cancelButton.innerText = "Cancel";
-    cancelButton.addEventListener("click", () => modal.close())
+    cancelButton.addEventListener("click", () => closeDialogModal())
 
-    modalButtons.append(confirmButton);
-    modalButtons.append(cancelButton)
-
-    modal.showModal();
+    showDialogModal(
+        [
+            document.createTextNode("Are you sure you want to forfeit the game?")
+        ],
+        [
+            confirmButton,
+            cancelButton
+        ],
+        false
+    )
 }
 
 enum PieceType {
