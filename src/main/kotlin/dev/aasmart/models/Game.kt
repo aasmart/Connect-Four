@@ -40,7 +40,8 @@ data class Game(
     var playerTwoId: String,
     var playerOneRematch: Boolean,
     var playerTwoRematch: Boolean,
-    val gameTilesString: String
+    val gameTilesString: String,
+    val rematchDenied: Boolean
 ) : java.io.Serializable
 
 object Games : Table() {
@@ -54,4 +55,5 @@ object Games : Table() {
     val playerOneRematch = bool("playerOneRematch")
     val playerTwoRematch = bool("playerTwoRematch")
     val gamePieces = text("gamePieces")
+    val rematchDenied = bool("rematchDenied")
 }

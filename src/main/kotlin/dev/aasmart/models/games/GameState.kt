@@ -11,7 +11,8 @@ data class GameState(
     val playerTwoRematch: Boolean,
     val joinCode: String,
     val playerOneConnected: Boolean,
-    val playerTwoConnected: Boolean
+    val playerTwoConnected: Boolean,
+    val rematchDenied: Boolean
 ) {
 
     override fun equals(other: Any?): Boolean {

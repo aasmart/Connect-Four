@@ -50,7 +50,8 @@ class GamesDAOFacadeCacheImpl(
         gameStatus: GameStatus?,
         playerOneRematch: Boolean?,
         playerTwoRematch: Boolean?,
-        gameTiles: Array<PieceType>?
+        gameTiles: Array<PieceType>?,
+        rematchDenied: Boolean?
     ): Boolean {
         get(gameId)?.let {
             gamesCache.put(gameId, Game(
@@ -63,7 +64,8 @@ class GamesDAOFacadeCacheImpl(
                 playerTwoRematch = playerTwoRematch ?: it.playerTwoRematch,
                 boardHeight = it.boardHeight,
                 boardWidth = it.boardWidth,
-                gameTilesString = gameTiles?.joinToString("/") ?: it.gameTilesString
+                gameTilesString = gameTiles?.joinToString("/") ?: it.gameTilesString,
+                rematchDenied = rematchDenied ?: it.rematchDenied
             ))
         }
 
@@ -75,7 +77,8 @@ class GamesDAOFacadeCacheImpl(
             gameStatus,
             playerOneRematch,
             playerTwoRematch,
-            gameTiles
+            gameTiles,
+            rematchDenied
         )
     }
 

@@ -1,4 +1,4 @@
-const ip = "192.168.5.77:8080"
+const ip = "127.0.0.1:8080"
 const SOCKET_ROUTE_URI = `ws://${ip}/api/game`
 const API_ROUTE_URI = `http://${ip}/api/game`
 
@@ -6,6 +6,7 @@ let client: WebSocket;
 let player: PlayerData;
 let lastState: GameState;
 let gameId: string;
+let isPlayerOne: boolean;
 
 const copySvgPromise = fetch("/static/copy.svg")
     .then(res => res.text())
@@ -33,6 +34,7 @@ window.addEventListener("load", () => {
             return res.json();
         }).then(data => {
               player = JSON.parse(JSON.stringify(data));
+              isPlayerOne = player.playerRole == "PLAYER_ONE"
               if(lastState)
                   handleGameState(GAME_TILES, lastState)
         }).catch(err => {
@@ -56,36 +58,36 @@ function getTitleString(state: GameState) {
     switch(state.gameStatus) {
         case GameStatus.ACTIVE:
             if(state.isPlayerOneTurn)
-                if(player.playerRole === "PLAYER_ONE")
+                if(isPlayerOne)
                     title = "It's your turn!";
                 else
                     title = "It's Player 1's turn!"
             else if(!state.isPlayerOneTurn)
-                if(player.playerRole === "PLAYER_TWO")
+                if(!isPlayerOne)
                     title = "It's your turn!";
                 else
                     title = "It's Player 2's turn!"
             break;
         case GameStatus.PLAYER_ONE_WON:
-            if(player.playerRole === "PLAYER_ONE")
+            if(isPlayerOne)
                 title = "You won!"
             else
                 title = "Player One wins!"
             break;
         case GameStatus.PLAYER_TWO_WON:
-            if(player.playerRole === "PLAYER_TWO")
+            if(!isPlayerOne)
                 title = "You won!"
             else
                 title = "Player Two wins!"
             break;
         case GameStatus.PLAYER_ONE_FORFEIT:
-            if(player.playerRole === "PLAYER_TWO")
+            if(!isPlayerOne)
                 title = "You won by forfeit!"
             else
                 title = "Player Two wins by forfeit!"
             break;
         case GameStatus.PLAYER_TWO_FORFEIT:
-            if(player.playerRole === "PLAYER_ONE")
+            if(isPlayerOne)
                 title = "You won by forfeit!"
             else
                 title = "Player Two wins by forfeit!"
@@ -124,7 +126,8 @@ function showDialogModal(
     modalContent.append(...modalContentNodes);
     modalButtons.append(...buttons);
 
-    modal.showModal();
+    if(!modal.open)
+        modal.showModal();
 }
 
 function closeDialogModal() {
@@ -147,73 +150,167 @@ function handleGameState(tiles: Element[], state: GameState) {
         }
 
         const canPlay =
-            state.isPlayerOneTurn && player.playerRole === "PLAYER_ONE" ||
-            !state.isPlayerOneTurn && player.playerRole === "PLAYER_TWO";
+            state.isPlayerOneTurn && isPlayerOne ||
+            !state.isPlayerOneTurn && !isPlayerOne;
 
         tile.toggleAttribute("disabled", (!tileState.canPlace || !canPlay));
         tile.classList.toggle("canPlace", tileState.canPlace && canPlay);
-
-        document.getElementById("state-title").innerText = getTitleString(state);
-
-        handleRematchButton(state)
-
-        const forfeitButton = document.getElementById("leave-game");
-        forfeitButton.toggleAttribute(
-            "disabled",
-            state.gameStatus == GameStatus.WAITING_FOR_PLAYERS || state.gameStatus == GameStatus.PLAYER_DISCONNECTED
-        );
-        if(state.gameStatus == GameStatus.ACTIVE || state.gameStatus == GameStatus.PLAYER_DISCONNECTED)
-            forfeitButton.innerText = "Forfeit";
-        else
-            forfeitButton.innerText = "Exit Game";
-
-        if(state.gameStatus == GameStatus.WAITING_FOR_PLAYERS) {
-            const joinCode = document.createElement("button");
-            joinCode.classList.add("join-code");
-            joinCode.innerHTML = state.joinCode;
-            if(window.isSecureContext && navigator.clipboard) {
-                joinCode.setAttribute("title", "Copy code to clipboard");
-                copySvgPromise.then(svg => joinCode.append(svg))
-                joinCode.addEventListener("click", () => {
-                    navigator.clipboard.writeText(state.joinCode).then(() => {
-                        joinCode.setAttribute("copied", "true");
-                        setTimeout(() => {
-                            joinCode.setAttribute("copied", "false");
-                        }, 1500);
-                    }, () => {
-                        console.log("Couldn't copy join code to clipboard");
-                    })
-                })
-
-                joinCode.setAttribute("data-can-copy", "true");
-            } else
-                joinCode.setAttribute("data-can-copy", "false");
-
-            const exitGameButton = document.createElement("button");
-            exitGameButton.onclick = exitGame;
-            exitGameButton.classList.add("basic-button");
-            exitGameButton.setAttribute("data-action", "destructive");
-            exitGameButton.innerText = "Exit Game";
-
-            showDialogModal(
-                [
-                    document.createTextNode("Waiting for players...\n Join Code: "),
-                    joinCode
-                ], [
-                    exitGameButton
-                ],
-                true
-            );
-        } else if(state.gameStatus == GameStatus.PLAYER_DISCONNECTED) {
-            showDialogModal(
-                [
-                    document.createTextNode("Player has disconnected; waiting for them to reconnect"),
-                ],
-                [],
-                true
-            );
-        }
     })
+
+    document.getElementById("state-title").innerText = getTitleString(state);
+
+    handleRematchDisplay(state)
+
+    const forfeitButton = document.getElementById("leave-game");
+    forfeitButton.toggleAttribute(
+        "disabled",
+        state.gameStatus == GameStatus.WAITING_FOR_PLAYERS || state.gameStatus == GameStatus.PLAYER_DISCONNECTED
+    );
+    if(state.gameStatus == GameStatus.ACTIVE || state.gameStatus == GameStatus.PLAYER_DISCONNECTED)
+        forfeitButton.innerText = "Forfeit";
+    else
+        forfeitButton.innerText = "Exit Game";
+
+    if(state.gameStatus == GameStatus.WAITING_FOR_PLAYERS) {
+        const joinCode = document.createElement("button");
+        joinCode.classList.add("join-code");
+        joinCode.innerHTML = state.joinCode;
+        joinCode.setAttribute("type", "button");
+        if(window.isSecureContext && navigator.clipboard) {
+            joinCode.setAttribute("title", "Copy code to clipboard");
+            copySvgPromise.then(svg => joinCode.append(svg))
+            joinCode.addEventListener("click", () => {
+                navigator.clipboard.writeText(state.joinCode).then(() => {
+                    joinCode.setAttribute("copied", "true");
+                    setTimeout(() => {
+                        joinCode.setAttribute("copied", "false");
+                    }, 1500);
+                }, () => {
+                    console.log("Couldn't copy join code to clipboard");
+                })
+            })
+
+            joinCode.setAttribute("data-can-copy", "true");
+        } else
+            joinCode.setAttribute("data-can-copy", "false");
+
+        const exitGameButton = document.createElement("button");
+        exitGameButton.addEventListener("click", () => exitGame());
+        exitGameButton.classList.add("basic-button");
+        exitGameButton.setAttribute("data-action", "destructive");
+        exitGameButton.innerText = "Exit Game";
+        exitGameButton.setAttribute("type", "button");
+
+        showDialogModal(
+            [
+                document.createTextNode("Waiting for players...\n Join Code: "),
+                joinCode
+            ], [
+                exitGameButton
+            ],
+            true
+        );
+    } else if(state.gameStatus == GameStatus.PLAYER_DISCONNECTED) {
+        showDialogModal(
+            [
+                document.createTextNode("Player has disconnected; waiting for them to reconnect"),
+            ],
+            [],
+            true
+        );
+    }
+}
+
+function handleRematchDisplay(state: GameState) {
+    const replayButton = document.getElementById("play-again");
+
+    if(
+        ((state.playerOneRematch && isPlayerOne) ||
+        (state.playerTwoRematch && !isPlayerOne)) &&
+        !state.rematchDenied
+    ) {
+        const cancelRematchRequestButton = document.createElement("button");
+        cancelRematchRequestButton.classList.add("basic-button");
+        cancelRematchRequestButton.setAttribute("data-action", "destructive");
+        cancelRematchRequestButton.innerText = "Withdraw Rematch Request";
+        cancelRematchRequestButton.addEventListener("click", () => requestRematch())
+        cancelRematchRequestButton.setAttribute("type", "button");
+
+        showDialogModal(
+            [
+                document.createTextNode("Your rematch request was sent")
+            ],
+            [
+                cancelRematchRequestButton
+            ],
+            true
+        )
+    } else if((state.playerOneRematch || state.playerTwoRematch) && !state.rematchDenied) {
+        const confirmButton = document.createElement("button");
+        confirmButton.classList.add("basic-button");
+        confirmButton.setAttribute("data-action", "normal");
+        confirmButton.innerText = "Accept Rematch";
+        confirmButton.addEventListener("click", () => requestRematch());
+        confirmButton.setAttribute("type", "button");
+
+        const cancelButton = document.createElement("button");
+        cancelButton.classList.add("basic-button");
+        cancelButton.setAttribute("data-action", "destructive");
+        cancelButton.innerText = "Reject";
+        cancelButton.addEventListener("click", () => {
+            fetch(`${API_ROUTE_URI}/${gameId}/rematch-request/reject`, {
+                method: "POST"
+            }).then(res => {
+                if(!res.ok)
+                    throw new Error();
+            })
+        })
+        cancelButton.setAttribute("type", "button");
+
+        showDialogModal(
+            [
+                document.createTextNode("Your opponent has requested a rematch")
+            ],
+            [
+                confirmButton,
+                cancelButton
+            ],
+            false
+        )
+    } else if(
+        ((state.playerOneRematch && isPlayerOne) || (state.playerTwoRematch && !isPlayerOne)) &&
+        state.rematchDenied
+    ) {
+        const confirmButton = document.createElement("button");
+        confirmButton.classList.add("basic-button");
+        confirmButton.setAttribute("data-action", "normal");
+        confirmButton.innerText = "Okay";
+        confirmButton.addEventListener("click", () => requestRematch());
+        confirmButton.setAttribute("type", "submit");
+
+        showDialogModal(
+            [
+                document.createTextNode("Your opponent declined a rematch")
+            ],
+            [
+                confirmButton
+            ],
+            false
+        )
+    }
+
+    replayButton.innerText = "Request Rematch";
+    replayButton.toggleAttribute(
+        "disabled",
+        (
+            state.gameStatus == GameStatus.ACTIVE ||
+            state.gameStatus == GameStatus.WAITING_FOR_PLAYERS ||
+            !state.playerOneConnected ||
+            !state.playerTwoConnected ||
+            state.rematchDenied
+        )
+    );
+    replayButton.setAttribute("data-action", "normal");
 }
 
 function placePiece(index: number) {
@@ -225,46 +322,11 @@ function placePiece(index: number) {
     })
 }
 
-function handleRematchButton(state: GameState) {
-    const replayButton = document.getElementById("play-again");
-    if(
-        (state.playerOneRematch && player.playerRole == "PLAYER_ONE") ||
-        (state.playerTwoRematch && player.playerRole == "PLAYER_TWO")
-    ) {
-        replayButton.innerText = "Cancel Rematch Request";
-        replayButton.toggleAttribute(
-            "disabled",
-            !state.playerOneConnected || !state.playerTwoConnected
-        );
-        replayButton.setAttribute("data-action", "destructive");
-    } else if(state.playerOneRematch || state.playerTwoRematch) {
-        replayButton.innerText = "Accept Rematch Request";
-        replayButton.toggleAttribute(
-            "disabled",
-        !state.playerOneConnected || !state.playerTwoConnected
-        );
-        replayButton.setAttribute("data-action", "normal");
-    } else {
-        replayButton.innerText = "Request Rematch";
-        replayButton.toggleAttribute(
-            "disabled",
-            (
-                state.gameStatus == GameStatus.ACTIVE ||
-                state.gameStatus == GameStatus.WAITING_FOR_PLAYERS ||
-                !state.playerOneConnected ||
-                !state.playerTwoConnected
-            )
-        );
-        replayButton.setAttribute("data-action", "normal");
-    }
-
-}
-
 function requestRematch() {
     let action= "send";
 
-    if(lastState.playerOneRematch && player.playerRole == "PLAYER_ONE" ||
-        lastState.playerTwoRematch && player.playerRole == "PLAYER_TWO"
+    if((lastState.playerOneRematch && isPlayerOne) ||
+        (lastState.playerTwoRematch && !isPlayerOne)
     ) {
         action = "withdraw";
     }
@@ -347,7 +409,8 @@ interface GameState {
     playerTwoRematch: boolean,
     joinCode: string,
     playerOneConnected: boolean,
-    playerTwoConnected: boolean
+    playerTwoConnected: boolean,
+    rematchDenied: boolean
 }
 
 interface PlayerData {

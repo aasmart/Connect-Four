@@ -20,7 +20,8 @@ interface GamesDAOFacade {
         gameStatus: GameStatus? = null,
         playerOneRematch: Boolean? = null,
         playerTwoRematch: Boolean? = null,
-        gameTiles: Array<PieceType>? = null
+        gameTiles: Array<PieceType>? = null,
+        rematchDenied: Boolean? = null
     ): Boolean
     suspend fun get(gameId: Int): Game?
     suspend fun all(): List<Game>

@@ -22,7 +22,8 @@ class ConnectFourGame(
     var playerTwoId: String,
     private var playerOneRematch: Boolean,
     private var playerTwoRematch: Boolean,
-    private val gameTiles: Array<PieceType>
+    private val gameTiles: Array<PieceType>,
+    private var rematchDenied: Boolean
 ) {
     constructor(game: Game) : this(
         game.id,
@@ -34,7 +35,8 @@ class ConnectFourGame(
         game.playerTwoId,
         game.playerOneRematch,
         game.playerTwoRematch,
-        game.gameTilesString.split("/").map { PieceType.valueOf(it) }.toTypedArray()
+        game.gameTilesString.split("/").map { PieceType.valueOf(it) }.toTypedArray(),
+        game.rematchDenied
     )
 
     companion object {
@@ -78,7 +80,8 @@ class ConnectFourGame(
             playerTwoId = playerTwoId,
             playerOneRematch = playerOneRematch,
             playerTwoRematch = playerTwoRematch,
-            gameTiles = gameTiles
+            gameTiles = gameTiles,
+            rematchDenied = rematchDenied
         )
 
         val state = collectAsState()
@@ -160,18 +163,31 @@ class ConnectFourGame(
         gameTiles.fill(PieceType.EMPTY)
         playerOneRematch = false
         playerTwoRematch = false
+        rematchDenied = false
 
         broadcastState()
     }
 
-    suspend fun requestRematch(playerId: String, cancelRequest: Boolean) {
-        playerOneRematch = (playerId == playerOneId || playerOneRematch) && !cancelRequest
-        playerTwoRematch = (playerId == playerTwoId || playerTwoRematch) && !cancelRequest
+    suspend fun requestRematch(playerId: String, type: RematchRequestType): Boolean {
+        if(rematchDenied)
+            return false
 
-        if(playerOneRematch && playerTwoRematch)
+        if(
+            ((playerOneRematch && playerId == playerTwoId) || (playerTwoRematch && playerId == playerOneId)) &&
+            type == RematchRequestType.REJECT
+        )
+            rematchDenied = true
+        else {
+            playerOneRematch = (playerId == playerOneId || playerOneRematch) && type == RematchRequestType.SEND
+            playerTwoRematch = (playerId == playerTwoId || playerTwoRematch) && type == RematchRequestType.SEND
+        }
+
+        if(playerOneRematch && playerTwoRematch && !rematchDenied)
             resetGame()
         else
             broadcastState()
+
+        return true
     }
 
     suspend fun forfeit(playerId: String): Boolean {
@@ -213,6 +229,7 @@ class ConnectFourGame(
         joinCode = JoinCodes.codeMap.filterValues { it == id }.keys.first(),
         playerOneConnected = hasConnectPlayerWithId(playerOneId),
         playerTwoConnected = hasConnectPlayerWithId(playerTwoId),
+        rematchDenied = rematchDenied
     )
 
     fun toGame(): Game = Game(
@@ -225,6 +242,7 @@ class ConnectFourGame(
         playerTwoId,
         playerOneRematch,
         playerTwoRematch,
-        gameTiles.joinToString("/")
+        gameTiles.joinToString("/"),
+        rematchDenied
     )
 }
