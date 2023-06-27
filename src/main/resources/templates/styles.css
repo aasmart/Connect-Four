@@ -360,6 +360,10 @@ input {
     width: 100%;
 }
 
+#popup-buttons > button {
+    min-width: 14rem;
+}
+
 #popup-buttons > * {
     flex: 1;
 }
