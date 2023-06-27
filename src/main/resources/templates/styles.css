@@ -364,7 +364,7 @@ input {
     flex: 1;
 }
 
-#popup:not([data-is-loading]) > .loading-bar {
+#popup:not([data-is-loading]) .loading-bar {
     display: none;
 }
 
