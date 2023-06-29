@@ -30,6 +30,7 @@ enum class GameRole {
     SPECTATOR
 }
 
+@Serializable
 data class Game(
     val id: Int,
     val boardWidth: Int,

@@ -11,23 +11,23 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
 fun Route.joinGame() {
-    get("/join") {
+    post("/join") {
         val joinCode = call.request.queryParameters["join-code"]
 
         val playerId = call.sessions.get<PlayerSession>()?.userId
         if(playerId == null) {
             call.respond(HttpStatusCode.Conflict, "Invalid session")
-            return@get
+            return@post
         } else if(joinCode == null || !JoinCodes.codeMap.containsKey(joinCode)) {
-            call.respondRedirect("/")
-            return@get
+            call.respond(HttpStatusCode.Conflict, "Invalid join code")
+            return@post
         }
 
         val gameId = JoinCodes.codeMap[joinCode]
         val game = gameId?.let { id -> GamesFacade.facade.get(id) }?.let { ConnectFourGame(it) }
         if(game == null) {
             call.respond(HttpStatusCode.NotFound, "Game does not exist")
-            return@get
+            return@post
         }
 
         if(!game.hasPlayerWithId(playerId))
@@ -42,6 +42,6 @@ fun Route.joinGame() {
             gameId = game.id
         ))
 
-        call.respondRedirect("/game/${game.id}")
+        call.respond(HttpStatusCode.OK, game.toGame())
     }
 }

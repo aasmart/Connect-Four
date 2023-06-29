@@ -24,7 +24,7 @@ fun Application.configureRouting() {
         }
 
         get {
-            call.respond(FreeMarkerContent("login.ftl", mapOf<String, String>()))
+            call.respond(FreeMarkerContent("index.ftl", mapOf<String, String>()))
         }
 
         authenticate("auth-session") {
@@ -37,7 +37,7 @@ fun Application.configureRouting() {
                 }
 
                 call.respond(FreeMarkerContent(
-                    "index.ftl",
+                    "game.ftl",
                     mapOf("state" to GamesFacade.facade.get(id)?.let { ConnectFourGame(it) }?.collectAsState()))
                 )
             }

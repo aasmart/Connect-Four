@@ -1,25 +1,26 @@
-<#-- @ftlvariable name="state" type="dev.aasmart.models.games.GameState" -->
 <#import "_layout.ftl" as layout />
 
 <@layout.main>
-    <h2 id="state-title">
-        Loading game...
-    </h2>
-    <div class="flex centered column" style="--gap: 1rem">
-        <div class="gameBoard">
-            <#list state.gameTiles as tile>
-                <button class="gameTile" onclick="placePiece(${tile?counter - 1})"></button>
-            </#list>
-        </div>
+    <div class="game-form">
+        <form action="/api/game" method="post">
+            <h3>Create New Game</h3>
+            <button class="basic-button">
+                Create Game
+            </button>
+        </form>
 
-        <div class="flex row centered game-buttons" style="--gap: 1rem">
-            <button type="submit" class="basic-button" id="play-again" onclick="requestRematch()" disabled data-action="normal">
-                Request Rematch
+        <form id="join-game" action="/api/game/join" method="get">
+            <h3>Join Existing Game</h3>
+            <label for="game-id">
+                Join Code:
+                <input type="text" name="join-code" id="join-code" required>
+                <p></p>
+            </label>
+            <button type="submit" class="basic-button">
+                Join Game
             </button>
-            <button type="submit" class="basic-button" id="leave-game" onclick="exitGame()" disabled data-action="destructive">
-                Quit Game
-            </button>
-        </div>
+        </form>
     </div>
-    <script> <#include "./game.js"> </script>
+
+    <script> <#include "./index.js"> </script>
 </@layout.main>
