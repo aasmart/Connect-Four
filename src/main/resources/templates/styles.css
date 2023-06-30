@@ -518,9 +518,13 @@ input {
     }
 }
 
-input:invalid,
-input[data-invalid] {
-    outline: 2px solid var(--danger-color);
+input[aria-invalid] {
+    border: 2px solid var(--danger-color);
+}
+
+input + strong {
+    color: var(--danger-color);
+    font-weight: normal;
 }
 
 .flex {

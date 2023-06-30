@@ -18,9 +18,11 @@ fun Route.joinGame() {
         if(playerId == null) {
             call.respond(HttpStatusCode.Conflict, "Invalid session")
             return@post
-        } else if(joinCode == null || !JoinCodes.codeMap.containsKey(joinCode)) {
+        } else if(joinCode == null) {
             call.respond(HttpStatusCode.Conflict, "Invalid join code")
             return@post
+        } else if(!JoinCodes.codeMap.containsKey(joinCode)) {
+            call.respond(HttpStatusCode.NotFound, "No game with this join code exists");
         }
 
         val gameId = JoinCodes.codeMap[joinCode]
