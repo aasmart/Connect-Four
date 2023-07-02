@@ -18,16 +18,7 @@ fun Route.game() {
             gameSocket()
             forfeit()
 
-            get {
-                val gameId = call.parameters["game-id"]?.toInt()
-                val game = GamesFacade.facade.get(gameId ?: -1)
-                if(game == null) {
-                    call.respond(HttpStatusCode.NotFound, "Games with ID $gameId does not exist")
-                    return@get
-                }
-
-                call.respond(HttpStatusCode.OK, game)
-            }
+            getGame()
         }
     }
 }
