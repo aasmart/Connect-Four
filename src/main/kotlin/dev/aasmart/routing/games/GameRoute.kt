@@ -1,10 +1,24 @@
 package dev.aasmart.routing.games
 
-import dev.aasmart.dao.games.GamesFacade
-import io.ktor.http.*
+import dev.aasmart.models.PlayerSession
 import io.ktor.server.application.*
-import io.ktor.server.response.*
+import io.ktor.server.auth.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
+
+val updatePlayerGame = createRouteScopedPlugin("updatePlayerGame") {
+    onCall { call ->
+        val gameId = call.parameters["game-id"]?.toInt()
+        val session = call.sessions.get<PlayerSession>() ?: return@onCall
+
+        call.sessions.set(
+            PlayerSession(
+                userId = session.userId,
+                gameId = gameId
+            )
+        )
+    }
+}
 
 fun Route.game() {
     route("/game") {
@@ -12,13 +26,16 @@ fun Route.game() {
         joinGame()
 
         route("/{game-id}") {
-            getPlayerData()
-            rematchRequest()
-            playPiece()
-            gameSocket()
-            forfeit()
+            install(updatePlayerGame)
 
-            getGame()
+            authenticate("auth-session") {
+                getPlayerData()
+                rematchRequest()
+                playPiece()
+                gameSocket()
+                forfeit()
+                getGame()
+            }
         }
     }
 }

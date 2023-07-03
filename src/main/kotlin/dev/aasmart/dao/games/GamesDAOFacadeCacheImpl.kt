@@ -1,6 +1,5 @@
 package dev.aasmart.dao.games
 
-import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.models.Game
 import dev.aasmart.models.GameStatus
 import dev.aasmart.models.PieceType
@@ -85,7 +84,7 @@ class GamesDAOFacadeCacheImpl(
     override suspend fun get(gameId: Int): Game? =
         gamesCache[gameId]
             ?: delegate.get(gameId)
-                .also { game -> gamesCache.put(gameId, game) }
+                ?.also { game -> gamesCache.put(gameId, game) }
 
     override suspend fun all(): List<Game> =
         delegate.all()

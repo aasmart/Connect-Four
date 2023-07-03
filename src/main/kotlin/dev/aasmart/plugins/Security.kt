@@ -36,8 +36,7 @@ fun Application.configureSecurity() {
                 val game = GamesFacade.facade.get(player.gameId ?: -1)?.let { ConnectFourGame(it) } ?: return@validate null
 
                 if(game.playerOneId != player.userId &&
-                    game.playerTwoId != player.userId &&
-                    game.hasBothPlayers()
+                    game.playerTwoId != player.userId
                 )
                     return@validate null
 

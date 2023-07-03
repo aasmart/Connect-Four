@@ -22,7 +22,7 @@ fun Route.joinGame() {
             call.respond(HttpStatusCode.Conflict, "Invalid join code")
             return@post
         } else if(!JoinCodes.codeMap.containsKey(joinCode)) {
-            call.respond(HttpStatusCode.NotFound, "No game with this join code exists");
+            call.respond(HttpStatusCode.NotFound, "No game with this join code exists")
         }
 
         val gameId = JoinCodes.codeMap[joinCode]
@@ -39,11 +39,14 @@ fun Route.joinGame() {
                 playerTwoId = game.playerTwoId.ifEmpty { playerId },
             )
 
-        call.sessions.set(PlayerSession(
-            userId = playerId,
-            gameId = game.id
-        ))
+        if(game.hasPlayerWithId(playerId)) {
+            call.sessions.set(PlayerSession(
+                userId = playerId,
+                gameId = game.id
+            ))
 
-        call.respond(HttpStatusCode.OK, game.toGame())
+            call.respond(HttpStatusCode.OK, game.toGame())
+        } else
+            call.respond(HttpStatusCode.Conflict, "This game cannot be joined")
     }
 }
