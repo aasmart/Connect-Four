@@ -226,7 +226,7 @@ class ConnectFourGame(
         isPlayerOneTurn = isPlayerOneTurn,
         playerOneRematch = playerOneRematch,
         playerTwoRematch = playerTwoRematch,
-        joinCode = JoinCodes.codeMap.filterValues { it == id }.keys.first(),
+        joinCode = JoinCodes.codeMap.filterValues { it == id }.keys.firstOrNull() ?: "",
         playerOneConnected = hasConnectPlayerWithId(playerOneId),
         playerTwoConnected = hasConnectPlayerWithId(playerTwoId),
         rematchDenied = rematchDenied

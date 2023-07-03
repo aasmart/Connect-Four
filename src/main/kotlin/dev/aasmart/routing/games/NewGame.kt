@@ -1,6 +1,7 @@
 package dev.aasmart.routing.games
 
 import dev.aasmart.dao.games.GamesFacade
+import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.models.JoinCodes
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*
@@ -45,6 +46,6 @@ fun Route.newGame() {
             gameId = game.id
         ))
 
-        call.respondRedirect("/game/${game.id}")
+        call.respond(HttpStatusCode.OK, ConnectFourGame(game).toGame())
     }
 }
