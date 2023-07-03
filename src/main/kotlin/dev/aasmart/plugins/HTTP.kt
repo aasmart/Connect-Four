@@ -7,7 +7,7 @@ import io.ktor.server.application.*
 fun Application.configureHTTP() {
     install(CORS) {
         allowCredentials = true
-        allowHost("localhost:3000")
+        allowHost(System.getenv("IP") ?: "localhost:3000")
         allowMethod(HttpMethod.Post)
         allowHeader(HttpHeaders.ContentType)
     }
