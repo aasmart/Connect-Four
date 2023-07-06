@@ -142,7 +142,17 @@ class ConnectFourGame(
             it -= connection
         }
 
-        if(gameStatus == GameStatus.ACTIVE && !areBothPlayersConnected()) {
+        if(
+            (
+                gameStatus == GameStatus.ACTIVE ||
+                gameStatus == GameStatus.PLAYER_DISCONNECTED ||
+                gameStatus == GameStatus.WAITING_FOR_PLAYERS
+            ) &&
+            !hasConnectPlayerWithId(playerOneId) &&
+            !hasConnectPlayerWithId(playerTwoId)
+        ) {
+            gameStatus = GameStatus.PLAYERS_DISCONNECTED
+        } else if(gameStatus == GameStatus.ACTIVE && !areBothPlayersConnected()) {
             gameStatus = GameStatus.PLAYER_DISCONNECTED
             disconnectedPlayerTimeout =
                 ZonedDateTime.now().plus(PLAYER_DISCONNECT_MAX_S, ChronoUnit.SECONDS)
