@@ -32,7 +32,7 @@ fun Route.joinGame() {
             return@post
         }
 
-        if(!game.hasPlayerWithId(playerId)) {
+        if(!game.hasPlayerWithId(playerId) || game.hasPlayerWithId(playerId)) {
             GamesFacade.facade.edit(
                 gameId = game.id,
                 playerOneId = game.playerOneId.ifEmpty { playerId },
