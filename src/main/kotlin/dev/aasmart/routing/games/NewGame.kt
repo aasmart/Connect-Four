@@ -11,8 +11,8 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
 fun Route.newGame() {
-    val maxJoinCodeReattempts = 5;
-    val joinCodeLength = 6;
+    val maxJoinCodeReattempts = 5
+    val joinCodeLength = 6
 
     post {
         val session = call.sessions.get<PlayerSession>()
