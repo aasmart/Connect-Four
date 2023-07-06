@@ -66,7 +66,7 @@ class GamesDAOFacadeCacheImpl(
                 boardWidth = it.boardWidth,
                 gameTilesString = gameTiles?.joinToString("/") ?: it.gameTilesString,
                 rematchDenied = rematchDenied ?: it.rematchDenied,
-                playerDisconnectTime = playerDisconnectTime ?: it.playerDisconnectTime ?: ""
+                playerDisconnectTime = playerDisconnectTime ?: (it.playerDisconnectTime ?: "")
             ))
         }
 
@@ -79,7 +79,8 @@ class GamesDAOFacadeCacheImpl(
             playerOneRematch,
             playerTwoRematch,
             gameTiles,
-            rematchDenied
+            rematchDenied,
+            playerDisconnectTime
         )
     }
 
