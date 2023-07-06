@@ -31,7 +31,7 @@ class ConnectFourGame(
     private var playerTwoRematch: Boolean,
     private val gameTiles: Array<PieceType>,
     private var rematchDenied: Boolean,
-    private var disconnectedPlayerForfeitTime: ZonedDateTime?
+    private var disconnectedPlayerTimeout: ZonedDateTime?
 ) {
     constructor(game: Game) : this(
         game.id,
@@ -45,7 +45,7 @@ class ConnectFourGame(
         game.playerTwoRematch,
         game.gameTilesString.split("/").map { PieceType.valueOf(it) }.toTypedArray(),
         game.rematchDenied,
-        try { parseServerToLocalTime(game.playerDisconnectTime ?: "") } catch (e: DateTimeParseException) { null }
+        try { parseServerToLocalTime(game.disconnectedPlayerTimeout ?: "") } catch (e: DateTimeParseException) { null }
     )
 
     companion object {
@@ -62,8 +62,8 @@ class ConnectFourGame(
 
             if(
                 game.areBothPlayersConnected() ||
-                game.disconnectedPlayerForfeitTime == null ||
-                ZonedDateTime.now().truncatedTo(ChronoUnit.SECONDS).isBefore(game.disconnectedPlayerForfeitTime)
+                game.disconnectedPlayerTimeout == null ||
+                ZonedDateTime.now().truncatedTo(ChronoUnit.SECONDS).isBefore(game.disconnectedPlayerTimeout)
             )
                 return
 
@@ -114,7 +114,7 @@ class ConnectFourGame(
             playerTwoRematch = playerTwoRematch,
             gameTiles = gameTiles,
             rematchDenied = rematchDenied,
-            playerDisconnectTime = disconnectedPlayerForfeitTime?.toHttpDateString()
+            disconnectedPlayerTimeout = disconnectedPlayerTimeout?.toHttpDateString()
         )
 
         val state = collectAsState()
@@ -130,7 +130,7 @@ class ConnectFourGame(
 
         if(gameStatus == GameStatus.WAITING_FOR_PLAYERS || gameStatus == GameStatus.PLAYER_DISCONNECTED) {
             gameStatus = if (areBothPlayersConnected()) GameStatus.ACTIVE else GameStatus.WAITING_FOR_PLAYERS
-            disconnectedPlayerForfeitTime = null
+            disconnectedPlayerTimeout = null
         }
 
         broadcastState()
@@ -144,7 +144,7 @@ class ConnectFourGame(
 
         if(gameStatus == GameStatus.ACTIVE && !areBothPlayersConnected()) {
             gameStatus = GameStatus.PLAYER_DISCONNECTED
-            disconnectedPlayerForfeitTime =
+            disconnectedPlayerTimeout =
                 ZonedDateTime.now().plus(PLAYER_DISCONNECT_MAX_S, ChronoUnit.SECONDS)
             GlobalScope.launch { handlePlayerDisconnect(id, PLAYER_DISCONNECT_MAX_S) }
         }
@@ -204,7 +204,7 @@ class ConnectFourGame(
         playerOneRematch = false
         playerTwoRematch = false
         rematchDenied = false
-        disconnectedPlayerForfeitTime = null
+        disconnectedPlayerTimeout = null
 
         broadcastState()
     }
@@ -271,7 +271,7 @@ class ConnectFourGame(
         playerOneConnected = hasConnectPlayerWithId(playerOneId),
         playerTwoConnected = hasConnectPlayerWithId(playerTwoId),
         rematchDenied = rematchDenied,
-        playerDisconnectTime = disconnectedPlayerForfeitTime?.toHttpDateString()
+        disconnectedPlayerTimeout = disconnectedPlayerTimeout?.toHttpDateString()
     )
 
     fun toGame(): Game = Game(
@@ -286,6 +286,6 @@ class ConnectFourGame(
         playerTwoRematch,
         gameTiles.joinToString("/"),
         rematchDenied,
-        disconnectedPlayerForfeitTime?.let { toServerTime(it) }
+        disconnectedPlayerTimeout?.let { toServerTime(it) }
     )
 }

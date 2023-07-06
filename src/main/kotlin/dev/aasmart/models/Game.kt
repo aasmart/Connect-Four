@@ -44,7 +44,7 @@ data class Game(
     var playerTwoRematch: Boolean,
     val gameTilesString: String,
     val rematchDenied: Boolean,
-    val playerDisconnectTime: String?,
+    val disconnectedPlayerTimeout: String?,
 ) : java.io.Serializable
 
 object Games : Table() {
@@ -59,5 +59,5 @@ object Games : Table() {
     val playerTwoRematch = bool("playerTwoRematch")
     val gamePieces = text("gamePieces")
     val rematchDenied = bool("rematchDenied")
-    val playerDisconnectTime = varchar("playerDisconnectTime", 128)
+    val disconnectedPlayerTimeout = varchar("disconnectedPlayerTimeout", 128)
 }
