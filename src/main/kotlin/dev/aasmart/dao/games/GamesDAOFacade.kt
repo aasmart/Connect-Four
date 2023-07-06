@@ -21,7 +21,7 @@ interface GamesDAOFacade {
         playerTwoRematch: Boolean? = null,
         gameTiles: Array<PieceType>? = null,
         rematchDenied: Boolean? = null,
-        playerDisconnectTime: String? = null
+        disconnectedPlayerTimeout: String? = null
     ): Boolean
     suspend fun get(gameId: Int): Game?
     suspend fun all(): List<Game>

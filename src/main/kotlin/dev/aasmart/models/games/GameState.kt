@@ -13,7 +13,7 @@ data class GameState(
     val playerOneConnected: Boolean,
     val playerTwoConnected: Boolean,
     val rematchDenied: Boolean,
-    val playerDisconnectTime: String?
+    val disconnectedPlayerTimeout: String?
 ) {
 
     override fun equals(other: Any?): Boolean {
