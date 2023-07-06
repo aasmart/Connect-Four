@@ -5,11 +5,21 @@ import dev.aasmart.models.*
 import dev.aasmart.models.games.GameState
 import dev.aasmart.models.games.GameTile
 import dev.aasmart.utils.*
+import io.ktor.server.http.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.lang.Exception
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAmount
+import java.time.temporal.TemporalUnit
 import java.util.*
 import kotlin.collections.LinkedHashSet
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.floor
 
 class ConnectFourGame(
@@ -23,7 +33,8 @@ class ConnectFourGame(
     private var playerOneRematch: Boolean,
     private var playerTwoRematch: Boolean,
     private val gameTiles: Array<PieceType>,
-    private var rematchDenied: Boolean
+    private var rematchDenied: Boolean,
+    private var playerDisconnectTime: LocalDateTime?
 ) {
     constructor(game: Game) : this(
         game.id,
@@ -36,10 +47,15 @@ class ConnectFourGame(
         game.playerOneRematch,
         game.playerTwoRematch,
         game.gameTilesString.split("/").map { PieceType.valueOf(it) }.toTypedArray(),
-        game.rematchDenied
+        game.rematchDenied,
+        try { LocalDateTime.parse(game.playerDisconnectTime) } catch (e: DateTimeParseException) { null }
     )
 
+    private var playerDisconnectEndGameJob: Deferred<Unit>? = null
+
     companion object {
+        private const val PLAYER_DISCONNECT_MAX_MS = 10000L
+
         private val gamePlayerConnections: MutableMap<Int, MutableSet<PlayerConnection>> = Collections.synchronizedMap(
             HashMap()
         )
@@ -95,8 +111,11 @@ class ConnectFourGame(
         gamePlayerConnections
             .getOrPut(id) { Collections.synchronizedSet(LinkedHashSet()) } += connection
 
-        if(gameStatus == GameStatus.WAITING_FOR_PLAYERS || gameStatus == GameStatus.PLAYER_DISCONNECTED)
+        if(gameStatus == GameStatus.WAITING_FOR_PLAYERS || gameStatus == GameStatus.PLAYER_DISCONNECTED) {
             gameStatus = if (areBothPlayersConnected()) GameStatus.ACTIVE else GameStatus.WAITING_FOR_PLAYERS
+            playerDisconnectTime = null
+            playerDisconnectEndGameJob?.cancel()
+        }
 
         broadcastState()
     }
@@ -106,8 +125,24 @@ class ConnectFourGame(
             it -= connection
         }
 
-        if(gameStatus == GameStatus.ACTIVE)
-            gameStatus = if (areBothPlayersConnected()) GameStatus.ACTIVE else GameStatus.PLAYER_DISCONNECTED
+        if(gameStatus == GameStatus.ACTIVE && !areBothPlayersConnected()) {
+            gameStatus = GameStatus.PLAYER_DISCONNECTED
+            playerDisconnectTime =
+                LocalDateTime.now().plus(PLAYER_DISCONNECT_MAX_MS, ChronoUnit.MILLIS)
+            playerDisconnectEndGameJob = handlePlayerDisconnect(PLAYER_DISCONNECT_MAX_MS)
+        }
+
+        broadcastState()
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun handlePlayerDisconnect(delayMillis: Long) = GlobalScope.async {
+        delay(delayMillis)
+        gameStatus =
+            if(hasConnectPlayerWithId(playerOneId))
+                GameStatus.PLAYER_ONE_WON
+            else
+                GameStatus.PLAYER_TWO_WON
 
         broadcastState()
     }
@@ -229,7 +264,8 @@ class ConnectFourGame(
         joinCode = JoinCodes.codeMap.filterValues { it == id }.keys.firstOrNull() ?: "",
         playerOneConnected = hasConnectPlayerWithId(playerOneId),
         playerTwoConnected = hasConnectPlayerWithId(playerTwoId),
-        rematchDenied = rematchDenied
+        rematchDenied = rematchDenied,
+        playerDisconnectTime = playerDisconnectTime?.toHttpDateString()
     )
 
     fun toGame(): Game = Game(
@@ -243,6 +279,7 @@ class ConnectFourGame(
         playerOneRematch,
         playerTwoRematch,
         gameTiles.joinToString("/"),
-        rematchDenied
+        rematchDenied,
+        playerDisconnectTime?.toHttpDateString()
     )
 }

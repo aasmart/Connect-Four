@@ -20,7 +20,8 @@ enum class GameStatus() {
     WAITING_FOR_PLAYERS,
     PLAYER_DISCONNECTED,
     PLAYER_ONE_FORFEIT,
-    PLAYER_TWO_FORFEIT
+    PLAYER_TWO_FORFEIT,
+    PLAYERS_DISCONNECTED
 }
 
 @Serializable
@@ -42,7 +43,8 @@ data class Game(
     var playerOneRematch: Boolean,
     var playerTwoRematch: Boolean,
     val gameTilesString: String,
-    val rematchDenied: Boolean
+    val rematchDenied: Boolean,
+    val playerDisconnectTime: String?,
 ) : java.io.Serializable
 
 object Games : Table() {
@@ -57,4 +59,5 @@ object Games : Table() {
     val playerTwoRematch = bool("playerTwoRematch")
     val gamePieces = text("gamePieces")
     val rematchDenied = bool("rematchDenied")
+    val playerDisconnectTime = varchar("playerDisconnectTime", 128)
 }

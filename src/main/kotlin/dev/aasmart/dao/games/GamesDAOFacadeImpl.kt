@@ -23,7 +23,8 @@ class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
         playerOneRematch = row[Games.playerOneRematch],
         playerTwoRematch = row[Games.playerTwoRematch],
         gameTilesString = row[Games.gamePieces],
-        rematchDenied = row[Games.rematchDenied]
+        rematchDenied = row[Games.rematchDenied],
+        playerDisconnectTime = row[Games.playerDisconnectTime]
     )
 
     override suspend fun create(
@@ -43,6 +44,7 @@ class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
             it[Games.playerTwoRematch] = false
             it[Games.gamePieces] = List(boardWidth * boardHeight) { PieceType.EMPTY }.joinToString("/")
             it[Games.rematchDenied] = false
+            it[Games.playerDisconnectTime] = ""
         }
 
         insert.resultedValues?.singleOrNull()?.let(::resolveResultRow)
@@ -57,7 +59,8 @@ class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
         playerOneRematch: Boolean?,
         playerTwoRematch: Boolean?,
         gameTiles: Array<PieceType>?,
-        rematchDenied: Boolean?
+        rematchDenied: Boolean?,
+        playerDisconnectTime: String?
     ): Boolean = dbQuery {
         Games.update(where = { Games.id eq gameId }) { game ->
             playerOneId?.let { game[Games.playerOneId] = it }
@@ -68,6 +71,7 @@ class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
             playerTwoRematch?.let { game[Games.playerTwoRematch] = it }
             gameTiles?.let { game[Games.gamePieces] = it.joinToString("/") }
             rematchDenied?.let { game[Games.rematchDenied] = it }
+            playerDisconnectTime?.let { game[Games.playerDisconnectTime] = it }
         } > 0
     }
 
