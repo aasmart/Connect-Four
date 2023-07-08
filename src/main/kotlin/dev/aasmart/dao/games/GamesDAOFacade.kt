@@ -1,6 +1,5 @@
 package dev.aasmart.dao.games
 
-import dev.aasmart.game.ConnectFourGame
 import dev.aasmart.models.Game
 import dev.aasmart.models.GameStatus
 import dev.aasmart.models.PieceType
@@ -21,7 +20,8 @@ interface GamesDAOFacade {
         playerOneRematch: Boolean? = null,
         playerTwoRematch: Boolean? = null,
         gameTiles: Array<PieceType>? = null,
-        rematchDenied: Boolean? = null
+        rematchDenied: Boolean? = null,
+        disconnectedPlayerTimeout: String? = null
     ): Boolean
     suspend fun get(gameId: Int): Game?
     suspend fun all(): List<Game>
