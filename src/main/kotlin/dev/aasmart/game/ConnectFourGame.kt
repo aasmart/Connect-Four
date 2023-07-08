@@ -69,9 +69,9 @@ class ConnectFourGame(
 
             game.gameStatus =
                 if(game.hasConnectPlayerWithId(game.playerOneId))
-                    GameStatus.PLAYER_ONE_WON
+                    GameStatus.PLAYER_TWO_FORFEIT
                 else
-                    GameStatus.PLAYER_TWO_WON
+                    GameStatus.PLAYER_ONE_FORFEIT
 
             game.broadcastState()
         }
