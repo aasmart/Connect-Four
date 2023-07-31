@@ -67,8 +67,7 @@ class GamesDAOFacadeCacheImpl(
                 gameTilesString = gameTiles?.joinToString("/") ?: it.gameTilesString,
                 rematchDenied = rematchDenied ?: it.rematchDenied,
                 disconnectedPlayerTimeout = disconnectedPlayerTimeout ?: (it.disconnectedPlayerTimeout ?: "")
-            )
-            )
+            ))
         }
 
         return delegate.edit(
