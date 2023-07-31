@@ -36,6 +36,6 @@ fun Route.spectateGame() {
         if(!game.hasPlayerWithId(playerId)) {
             call.respond(HttpStatusCode.OK, game.toGame())
         } else
-            call.respondRedirect("join?join-code=${joinCode}")
+            call.respond(HttpStatusCode.Conflict, "Could not spectate this game since you have already joined it")
     }
 }
