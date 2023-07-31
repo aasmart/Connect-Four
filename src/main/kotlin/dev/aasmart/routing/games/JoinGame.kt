@@ -2,7 +2,7 @@ package dev.aasmart.routing.games
 
 import dev.aasmart.dao.games.GamesFacade
 import dev.aasmart.game.ConnectFourGame
-import dev.aasmart.models.JoinCodes
+import dev.aasmart.game.JoinCodes
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*
 import io.ktor.server.application.*

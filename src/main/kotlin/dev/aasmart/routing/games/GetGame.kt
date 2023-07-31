@@ -12,7 +12,7 @@ fun Route.getGame() {
         val gameId = call.parameters["game-id"]?.toInt()
         val game = GamesFacade.facade.get(gameId ?: -1)
         if(game == null) {
-            call.respond(HttpStatusCode.NotFound, "Games with ID $gameId does not exist")
+            call.respond(HttpStatusCode.NotFound, "Game with ID $gameId does not exist")
             return@get
         }
 
@@ -23,7 +23,7 @@ fun Route.getGame() {
         val gameId = call.parameters["game-id"]?.toInt()
         val game = GamesFacade.facade.get(gameId ?: -1)
         if(game == null) {
-            call.respond(HttpStatusCode.NotFound, "Games with ID $gameId does not exist")
+            call.respond(HttpStatusCode.NotFound, "Game with ID $gameId does not exist")
             return@get
         }
 

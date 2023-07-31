@@ -2,7 +2,6 @@ package dev.aasmart.dao.games
 
 import dev.aasmart.dao.DatabaseFactory.dbQuery
 import dev.aasmart.dao.ResolvableDAOFacade
-import org.jetbrains.exposed.sql.ResultRow
 import dev.aasmart.models.games.Game
 import dev.aasmart.models.games.GameStatus
 import dev.aasmart.models.games.Games
@@ -22,7 +21,8 @@ class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
         playerOneRematch = row[Games.playerOneRematch],
         playerTwoRematch = row[Games.playerTwoRematch],
         gameTilesString = row[Games.gamePieces],
-        rematchDenied = row[Games.rematchDenied]
+        rematchDenied = row[Games.rematchDenied],
+        disconnectedPlayerTimeout = row[Games.disconnectedPlayerTimeout]
     )
 
     override suspend fun create(
@@ -57,7 +57,8 @@ class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
         playerOneRematch: Boolean?,
         playerTwoRematch: Boolean?,
         gameTiles: Array<PieceType>?,
-        rematchDenied: Boolean?
+        rematchDenied: Boolean?,
+        disconnectedPlayerTimeout: String?
     ): Boolean = dbQuery {
         Games.update(where = { Games.id eq gameId }) { game ->
             playerOneId?.let { game[Games.playerOneId] = it }
@@ -68,6 +69,7 @@ class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
             playerTwoRematch?.let { game[Games.playerTwoRematch] = it }
             gameTiles?.let { game[Games.gamePieces] = it.joinToString("/") }
             rematchDenied?.let { game[Games.rematchDenied] = it }
+            disconnectedPlayerTimeout?.let { game[Games.disconnectedPlayerTimeout] = it }
         } > 0
     }
 
