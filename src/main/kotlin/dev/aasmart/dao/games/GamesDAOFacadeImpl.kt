@@ -1,13 +1,12 @@
 package dev.aasmart.dao.games
 
-import dev.aasmart.dao.ResolvableDAOFacade
 import dev.aasmart.dao.DatabaseFactory.dbQuery
-import dev.aasmart.game.ConnectFourGame
-import dev.aasmart.models.Game
-import dev.aasmart.models.GameStatus
-import dev.aasmart.models.Games
-import dev.aasmart.models.PieceType
+import dev.aasmart.dao.ResolvableDAOFacade
 import org.jetbrains.exposed.sql.ResultRow
+import dev.aasmart.models.games.Game
+import dev.aasmart.models.games.GameStatus
+import dev.aasmart.models.games.Games
+import dev.aasmart.models.games.PieceType
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
@@ -43,6 +42,7 @@ class GamesDAOFacadeImpl : GamesDAOFacade, ResolvableDAOFacade<Game> {
             it[Games.playerTwoRematch] = false
             it[Games.gamePieces] = List(boardWidth * boardHeight) { PieceType.EMPTY }.joinToString("/")
             it[Games.rematchDenied] = false
+            it[Games.disconnectedPlayerTimeout] = ""
         }
 
         insert.resultedValues?.singleOrNull()?.let(::resolveResultRow)

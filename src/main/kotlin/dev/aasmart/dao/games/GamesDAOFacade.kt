@@ -1,9 +1,8 @@
 package dev.aasmart.dao.games
 
-import dev.aasmart.game.ConnectFourGame
-import dev.aasmart.models.Game
-import dev.aasmart.models.GameStatus
-import dev.aasmart.models.PieceType
+import dev.aasmart.models.games.Game
+import dev.aasmart.models.games.GameStatus
+import dev.aasmart.models.games.PieceType
 
 interface GamesDAOFacade {
     suspend fun create(
