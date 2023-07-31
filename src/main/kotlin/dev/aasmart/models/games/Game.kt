@@ -1,4 +1,4 @@
-package dev.aasmart.models
+package dev.aasmart.models.games
 
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table

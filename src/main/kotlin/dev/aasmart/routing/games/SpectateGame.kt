@@ -10,8 +10,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Route.joinGame() {
-    post("/join") {
+fun Route.spectateGame() {
+    post("/spectate") {
         val joinCode = call.request.queryParameters["join-code"]
 
         val playerId = call.sessions.get<PlayerSession>()?.userId
@@ -33,15 +33,9 @@ fun Route.joinGame() {
             return@post
         }
 
-        if(!game.hasPlayerWithId(playerId) || game.hasPlayerWithId(playerId)) {
-            GamesFacade.facade.edit(
-                gameId = game.id,
-                playerOneId = game.playerOneId.ifEmpty { playerId },
-                playerTwoId = game.playerTwoId.ifEmpty { playerId },
-            )
-
+        if(!game.hasPlayerWithId(playerId)) {
             call.respond(HttpStatusCode.OK, game.toGame())
         } else
-            call.respond(HttpStatusCode.Conflict, "This game cannot be joined")
+            call.respond(HttpStatusCode.Conflict, "Could not spectate this game since you have already joined it")
     }
 }

@@ -1,4 +1,4 @@
-package dev.aasmart.game
+package dev.aasmart.models.games
 
 enum class RematchRequestType {
     SEND,

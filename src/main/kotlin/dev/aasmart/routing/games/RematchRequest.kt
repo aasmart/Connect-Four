@@ -2,7 +2,7 @@ package dev.aasmart.routing.games
 
 import dev.aasmart.dao.games.GamesFacade
 import dev.aasmart.game.ConnectFourGame
-import dev.aasmart.game.RematchRequestType
+import dev.aasmart.models.games.RematchRequestType
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*
 import io.ktor.server.application.*

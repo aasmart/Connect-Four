@@ -2,10 +2,10 @@ package dev.aasmart.dao.games
 
 import dev.aasmart.dao.DatabaseFactory.dbQuery
 import dev.aasmart.dao.ResolvableDAOFacade
-import dev.aasmart.models.Game
-import dev.aasmart.models.GameStatus
-import dev.aasmart.models.Games
-import dev.aasmart.models.PieceType
+import dev.aasmart.models.games.Game
+import dev.aasmart.models.games.GameStatus
+import dev.aasmart.models.games.Games
+import dev.aasmart.models.games.PieceType
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 

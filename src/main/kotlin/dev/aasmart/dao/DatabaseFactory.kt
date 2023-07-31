@@ -1,6 +1,6 @@
 package dev.aasmart.dao
 
-import dev.aasmart.models.Games
+import dev.aasmart.models.games.Games
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
