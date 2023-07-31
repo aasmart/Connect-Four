@@ -24,15 +24,16 @@ fun Route.game() {
     route("/game") {
         newGame()
         joinGame()
+        spectateGame()
 
         route("/{game-id}") {
             install(updatePlayerGame)
 
+            gameSocket()
             authenticate("playing-game-auth") {
                 getPlayerData()
                 rematchRequest()
                 playPiece()
-                gameSocket()
                 forfeit()
                 getGame()
             }
