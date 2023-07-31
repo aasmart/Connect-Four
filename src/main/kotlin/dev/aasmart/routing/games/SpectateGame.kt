@@ -17,20 +17,20 @@ fun Route.spectateGame() {
         val playerId = call.sessions.get<PlayerSession>()?.userId
         if(playerId == null) {
             call.respond(HttpStatusCode.Conflict, "Invalid session")
-            return@get
+            return@post
         } else if(joinCode == null) {
             call.respond(HttpStatusCode.Conflict, "Invalid join code")
-            return@get
+            return@post
         } else if(!JoinCodes.codeMap.containsKey(joinCode)) {
             call.respond(HttpStatusCode.NotFound, "No game with this join code exists")
-            return@get
+            return@post
         }
 
         val gameId = JoinCodes.codeMap[joinCode]
         val game = gameId?.let { id -> GamesFacade.facade.get(id) }?.let { ConnectFourGame(it) }
         if(game == null) {
             call.respond(HttpStatusCode.NotFound, "Game does not exist")
-            return@get
+            return@post
         }
 
         if(!game.hasPlayerWithId(playerId)) {
