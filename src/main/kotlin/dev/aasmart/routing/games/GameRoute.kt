@@ -28,7 +28,7 @@ fun Route.game() {
         route("/{game-id}") {
             install(updatePlayerGame)
 
-            authenticate("auth-session") {
+            authenticate("playing-game-auth") {
                 getPlayerData()
                 rematchRequest()
                 playPiece()

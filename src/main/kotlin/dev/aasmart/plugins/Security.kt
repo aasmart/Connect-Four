@@ -31,12 +31,12 @@ fun Application.configureSecurity() {
     }
 
     install(Authentication) {
-        session<PlayerSession>("auth-session") {
+        session<PlayerSession>("playing-game-auth") {
             validate { player ->
                 val game = GamesFacade.facade.get(player.gameId ?: -1)?.let { ConnectFourGame(it) } ?: return@validate null
 
-                if(game.playerOneId != player.userId &&
-                    game.playerTwoId != player.userId
+                if(game.playerOneId != player.userId
+                    && game.playerTwoId != player.userId
                 )
                     return@validate null
 
