@@ -1,8 +1,8 @@
 package dev.aasmart.dao.games
 
-import dev.aasmart.models.Game
-import dev.aasmart.models.GameStatus
-import dev.aasmart.models.PieceType
+import dev.aasmart.models.games.Game
+import dev.aasmart.models.games.GameStatus
+import dev.aasmart.models.games.PieceType
 import org.ehcache.config.builders.CacheConfigurationBuilder
 import org.ehcache.config.builders.CacheManagerBuilder
 import org.ehcache.config.builders.ResourcePoolsBuilder
@@ -67,7 +67,8 @@ class GamesDAOFacadeCacheImpl(
                 gameTilesString = gameTiles?.joinToString("/") ?: it.gameTilesString,
                 rematchDenied = rematchDenied ?: it.rematchDenied,
                 disconnectedPlayerTimeout = disconnectedPlayerTimeout ?: (it.disconnectedPlayerTimeout ?: "")
-            ))
+            )
+            )
         }
 
         return delegate.edit(
