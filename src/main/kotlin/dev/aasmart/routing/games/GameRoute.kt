@@ -30,8 +30,8 @@ fun Route.game() {
             install(updatePlayerGame)
 
             gameSocket()
+            getPlayerData()
             authenticate("playing-game-auth") {
-                getPlayerData()
                 rematchRequest()
                 playPiece()
                 forfeit()
