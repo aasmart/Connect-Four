@@ -6,6 +6,7 @@ import dev.aasmart.game.JoinCodes
 import dev.aasmart.models.PlayerSession
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
@@ -33,7 +34,7 @@ fun Route.joinGame() {
             return@post
         }
 
-        if(!game.hasPlayerWithId(playerId) || game.hasPlayerWithId(playerId)) {
+        if(game.hasPlayerWithId(playerId) || !game.hasBothPlayers()) {
             GamesFacade.facade.edit(
                 gameId = game.id,
                 playerOneId = game.playerOneId.ifEmpty { playerId },
@@ -41,7 +42,8 @@ fun Route.joinGame() {
             )
 
             call.respond(HttpStatusCode.OK, game.toGame())
-        } else
-            call.respond(HttpStatusCode.Conflict, "This game cannot be joined")
+        } else {
+            call.respond(HttpStatusCode.Conflict, "Game is full")
+        }
     }
 }
