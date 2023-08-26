@@ -24,7 +24,6 @@ fun Route.game() {
     route("/game") {
         newGame()
         joinGame()
-        spectateGame()
 
         route("/{game-id}") {
             install(updatePlayerGame)

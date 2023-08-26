@@ -34,16 +34,12 @@ fun Route.joinGame() {
             return@post
         }
 
-        if(game.hasPlayerWithId(playerId) || !game.hasBothPlayers()) {
-            GamesFacade.facade.edit(
-                gameId = game.id,
-                playerOneId = game.playerOneId.ifEmpty { playerId },
-                playerTwoId = game.playerTwoId.ifEmpty { playerId },
-            )
+        GamesFacade.facade.edit(
+            gameId = game.id,
+            playerOneId = game.playerOneId.ifEmpty { playerId },
+            playerTwoId = game.playerTwoId.ifEmpty { playerId },
+        )
 
-            call.respond(HttpStatusCode.OK, game.toGame())
-        } else {
-            call.respond(HttpStatusCode.Conflict, "Game is full")
-        }
+        call.respond(HttpStatusCode.OK, game.toGame())
     }
 }
