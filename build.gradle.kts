@@ -47,6 +47,7 @@ dependencies {
     implementation("io.ktor:ktor-server-websockets:$ktor_version")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2")
     implementation("io.ktor:ktor-server-websockets-jvm:2.3.1")
+    implementation("io.ktor:ktor-server-rate-limit:$ktor_version")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }

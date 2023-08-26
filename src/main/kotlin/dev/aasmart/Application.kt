@@ -23,6 +23,7 @@ fun Application.module() {
         runBlocking { }
     }
 
+    configureRateLimits()
     configureSecurity()
     configureHTTP()
     configureSockets()
