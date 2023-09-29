@@ -2,12 +2,15 @@ package dev.aasmart.routing.games
 
 import dev.aasmart.dao.games.GamesFacade
 import dev.aasmart.game.ConnectFourGame
+import dev.aasmart.models.Message
 import dev.aasmart.models.PlayerConnection
 import dev.aasmart.models.PlayerSession
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 fun Route.gameSocket() {
     webSocket {
@@ -35,19 +38,61 @@ fun Route.gameSocket() {
             }
 
         try {
-            connection.session.send("Connected to game $gameId")
+
+            val game = GamesFacade.facade
+                .get(gameId)
+                ?.let { ConnectFourGame(it) }
+
+            val player: String = if(game?.playerOneId == session.userId)
+                "Player 1"
+            else if(game?.playerTwoId == session.userId)
+                "Player 2"
+            else
+                "Spectator"
+
+            game?.getConnections()?.forEach {
+                it.session.send(Json.encodeToString(
+                    Message("SYSTEM", "$player connected.")
+                ))
+            }
 
             for (frame in incoming) {
                 frame as? Frame.Text ?: continue
+                val content = frame.readText()
+                val message = Json.decodeFromString<Message>(content)
+
+                val updatedMessage: Message = if(game?.playerOneId == session.userId)
+                    Message("Player 1", message.contents)
+                else if(game?.playerTwoId == session.userId)
+                    Message("Player 2", message.contents)
+                else
+                    Message("Spectator", message.contents)
+
+                game?.getConnections()?.forEach {
+                    it.session.send(Json.encodeToString(updatedMessage))
+                }
             }
         } catch (e: Exception) {
             println(e.localizedMessage)
         } finally {
-            println("Session ${connection.session} disconnected")
-            GamesFacade.facade
+            val game = GamesFacade.facade
                 .get(gameId)
                 ?.let { ConnectFourGame(it) }
-                ?.removeConnection(connection)
+
+            val player: String = if(game?.playerOneId == session.userId)
+                "Player 1"
+            else if(game?.playerTwoId == session.userId)
+                "Player 2"
+            else
+                "Spectator"
+
+            game?.getConnections()?.forEach {
+                it.session.send(Json.encodeToString(
+                    Message("SYSTEM", "$player disconnected.")
+                ))
+            }
+            println("Session ${connection.session} disconnected")
+            game?.removeConnection(connection)
         }
     }
 }
