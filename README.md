@@ -15,5 +15,5 @@ To try it out, just clone the repo and run it on your local machine. A jar likel
 
 I do not have a fixed timeline for this application, so I'll work on these features when I feel like it.
 
-## Frontend
-The frontend for this application is being developed separately and can be found [here](https://github.com/aasmart/connect-four-frontend)
+## Frontend and Demonstration
+The frontend (and a demonstration) for this application is being developed separately and can be found [here](https://github.com/aasmart/connect-four-frontend)
